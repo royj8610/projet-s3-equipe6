@@ -89,7 +89,7 @@ get_pos_bq = sp.lambdify((theta, x), pos_bq, modules="numpy")
 #####################################################################################
 
 V_MAX = 0.4
-MAX_ACCEL = 7
+MAX_ACCEL = 6
 
 FACTOR = 0.5
 
