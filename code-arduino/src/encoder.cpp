@@ -95,7 +95,9 @@ uint16_t buildReadCommand(uint16_t adress){
 }
 
 uint16_t readRegister(uint16_t adress){
+
     uint16_t cmd = buildReadCommand(adress);
+
     SPI.beginTransaction(SPISettings(maxClockSpeed, MSBFIRST, SPI_MODE1));
 
     ////////// FRAME 1 : send command (16 bit), in this case a read command //////////////
@@ -118,15 +120,15 @@ uint16_t extractJustAngleData(uint16_t registerData){
     return angleData;
 }
 
-int pulse2degree(uint16_t angleData){
+float pulse2degree(uint16_t angleData){
     float angle = angleData * 360.0f/1024.0f;
     return angle;
 }
 
-float get_angle() {
+float getAngle() {
     uint16_t registerData = readRegister(0x3FFF);
     uint16_t angleData = extractJustAngleData(registerData);
-    int angle = pulse2degree(angleData);
+    float angle = pulse2degree(angleData);
     Serial.print("angle : ");
     Serial.print(angle);
 
