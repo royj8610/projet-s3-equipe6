@@ -55,7 +55,7 @@ SPI WRITE TRANSACTION
 const int CS_encoderPin = 10; 
 const long maxClockSpeed = 1000000;
 
-void setup() {
+void encoder_init() {
   Serial.begin(115200);
   SPISettings(maxClockSpeed, MSBFIRST, SPI_MODE1);
 
@@ -94,8 +94,8 @@ uint16_t buildReadCommand(uint16_t adress){
     return cmd;
 }
 
-uint16_t readRegister(uint16_t cmd) {
-    
+uint16_t readRegister(uint16_t adress){
+    uint16_t cmd = buildReadCommand(adress);
     SPI.beginTransaction(SPISettings(maxClockSpeed, MSBFIRST, SPI_MODE1));
 
     ////////// FRAME 1 : send command (16 bit), in this case a read command //////////////
@@ -105,22 +105,32 @@ uint16_t readRegister(uint16_t cmd) {
 
     /////////// FRAME 2 : get response (16 bit) //////////////////
     digitalWrite(CS_encoderPin, LOW);
-    uint16_t result = SPI.transfer16(0x0000); // NOP
+    uint16_t registerData = SPI.transfer16(0x0000); // NOP
     digitalWrite(CS_encoderPin, HIGH);
 
     SPI.endTransaction();
 
-    return result;
-
+    return registerData;
 }
 
-int encoderData2Angle(uint16_t value){
-    
+uint16_t extractJustAngleData(uint16_t registerData){
+    uint16_t angleData = registerData & 0x3FFF;
+    return angleData;
 }
 
+int pulse2degree(uint16_t angleData){
+    float angle = angleData * 360.0f/1024.0f;
+    return angle;
+}
 
-void loop() {
-    // needed to avoid errors
+float get_angle() {
+    uint16_t registerData = readRegister(0x3FFF);
+    uint16_t angleData = extractJustAngleData(registerData);
+    int angle = pulse2degree(angleData);
+    Serial.print("angle : ");
+    Serial.print(angle);
+
+    return angle;
 }
 
 
