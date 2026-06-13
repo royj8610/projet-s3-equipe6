@@ -3,7 +3,7 @@
 import sympy as sp
 import sympy.physics.mechanics as mec
 
-import cart_pole.param as const
+from simulation.cart_pole import param as const
 
 def cartpole_symbolic():
     """
@@ -11,7 +11,7 @@ def cartpole_symbolic():
 
     Returns
     -------
-    Iterable[Any] : 
+    Any, Any : 
         Les functions des équations matricielle A et b.
     """
     #####################################################################################
@@ -101,7 +101,7 @@ def cartpole_symbolic():
     )
 
     # Corps B
-    Izz_B = 1/3*mRod*(L**2)
+    Izz_B = 1/12*mRod*(L**2)
     I_rod_matrix = mec.Inertia.from_inertia_scalars(Bcm, B, 0, 0, Izz_B)
     rod = mec.RigidBody(
         name="Rod",
@@ -158,6 +158,27 @@ def cartpole_symbolic():
         ],
     )
 
+    #####################################################################################
+    # Lambdify
+    
+    A_fn = sp.lambdify(
+        (theta),
+        mat_A.subs(cst),
+        'numpy'
+    )
+
+    b_fn = sp.lambdify(
+        (theta, dx, dtheta, Fm),
+        mat_b.subs(cst),
+        'numpy'
+    )
+
+    #####################################################################################
+    # Return
+    
+    return A_fn, b_fn
+
+
     # # Équation Forces A
     # FA_lhs = mA*g*-N.y + 2*Fn*N.y + Ft*-B.y
     # FA_rhs = chariot.linear_momentum(N).dt(N)
@@ -184,20 +205,6 @@ def cartpole_symbolic():
     #         ddx, ddtheta, Ft
     #     ]
     # )
-
-    A_fn = sp.lambdify(
-        (theta),
-        mat_A.subs(cst),
-        'numpy'
-    )
-
-    b_fn = sp.lambdify(
-        (x, theta, dx, dtheta),
-        mat_b.subs(cst),
-        'numpy'
-    )
-
-    return [A_fn, b_fn]
 
     # get_ang_acc = sp.lambdify((theta, dtheta, ddx), sol1[0], modules="numpy")
     # get_acc = sp.lambdify((theta, dtheta, ddtheta), sol2[0], modules="numpy")

@@ -1,5 +1,6 @@
 
-from cart_pole.cartpole import cartpole_simulate
+from simulation.cart_pole.cartpole import cartpole_simulate
+from simulation.visual.animations import animate_cart_pole
 
 def main():
     """
@@ -7,8 +8,10 @@ def main():
     """
 
     y0 = [0, 0, 0, 0]
-    tf = 60
+    tf = 2
     sol = cartpole_simulate(init_val=y0, tf=tf)
+
+    animate_cart_pole(sol)
 
 
 if __name__ == "__main__":

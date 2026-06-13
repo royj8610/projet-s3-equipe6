@@ -18,7 +18,7 @@ class Motor:
             Le facteur de démultiplication du moteur
         """
         self.kg = kg
-        
+
 
     def voltage_to_torque(self, U: float) -> float:
         """
@@ -37,7 +37,7 @@ class Motor:
         return 0.0
     
     
-    def torque_to_speed():
+    def torque_to_speed(self):
         pass
 
     
