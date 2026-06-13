@@ -11,6 +11,5 @@ def main():
     sol = cartpole_simulate(init_val=y0, tf=tf)
 
 
-
 if __name__ == "__main__":
     main()

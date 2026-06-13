@@ -1,6 +1,7 @@
 
 import numpy as np
 from scipy.integrate import solve_ivp
+from cart_pole.symbolic import cartpole_symbolic
 
 def cartpole_solve(t, y):
     """
@@ -38,6 +39,7 @@ def cartpole_simulate(
     sol : 
         La solution du solve_ivp.
     """
+    cartpole_symbolic()
 
     sol = solve_ivp(
             fun=cartpole_solve,
