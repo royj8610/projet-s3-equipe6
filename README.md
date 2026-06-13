@@ -25,3 +25,32 @@ Allez sur le site de GitHub, sous l'onglet *pull request*. Cliquer sur "New pull
 Après avoir révisé vos changements, cliquez sur "Create pull request". Vous pouvez donner un nom à votre *pull request* et laisser un commentaire pour expliquer les changements apportés.
 
 Une fois la *pull request* créée, elle devra être approuvée par un autre membre avant de pouvoir être fusionnée sur *main*.
+
+
+## Structure du simulateur Python
+
+### Exemple de Docstring
+Cette structure de docstring permet un formattage automatique lors du over de la souris sur le fonction
+
+```Python
+    """
+    Convertie une tension d'entré en torque moteur.
+
+    Parameters
+    ----------
+    U : float
+        The total distance traveled in meters.
+    time : float
+        The total time taken in seconds.
+
+    Returns
+    -------
+    float
+        The calculated velocity in meters per second.
+
+    Raises
+    ------
+    ZeroDivisionError
+        If the time provided is zero.
+    """
+```

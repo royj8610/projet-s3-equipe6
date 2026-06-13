@@ -7,9 +7,12 @@ import param as const
 
 def cartpole_symbolic():
     """
-    DESC : Résolution symbolique du Cartpole
+    Résolution symbolique du cartpole.
 
-    RET  : Iterable[Any] - Les functions des équations matricielle A et b
+    Returns
+    -------
+    Iterable[Any] : 
+        Les functions des équations matricielle A et b.
     """
     #####################################################################################
 

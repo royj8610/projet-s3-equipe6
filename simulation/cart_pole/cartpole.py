@@ -3,20 +3,40 @@ import numpy as np
 from scipy.integrate import solve_ivp
 
 def cartpole_solve(t, y):
-    pass
+    """
+    Fonction pour l'intégration numérique du systeme.
+
+    Parameters
+    ----------
+    y : list[float]
+        Liste des variables indépendantes [x, theta, dx, dtheta].
+
+    Returns
+    -------
+    list[float]
+        Dérivée des variables indépendantes [dx, dtheta, ddx, ddtheta].
+    """
+    pass # TODO
+
 
 def cartpole_simulate(
         init_val:np.ndarray,
         tf:float
-):
+    ):
     """
-    DESC: 
-        Effectue l'intégration numérique pour le système du cartpole
-    PARAM:
-        init_val - Les valeurs initiales de l'intégration
-        tf - Le temps de fin de l'intégration
-    RET:
-        sol - La solution du solve_ivp
+    Effectue l'intégration numérique pour le système du cartpole.
+
+    Parameters
+    ----------
+    init_val :
+        Les valeurs initiales de l'intégration
+    tf : float 
+        Le temps de fin de l'intégration.
+
+    Returns
+    -------
+    sol : 
+        La solution du solve_ivp.
     """
 
     sol = solve_ivp(
@@ -32,13 +52,19 @@ def cartpole_simulate(
             rtol=1e-6,
         )
 
-    pass
-
-def main():
-    ## Logique de résolution du cartpole, appeler les fonctions des autres fichiers
-    pass
+    return sol
 
 
 
-if __name__ == "__main__":
-    main()
+
+
+# Je pense pas que ce soit utile - Liam
+
+# def main():
+#     ## Logique de résolution du cartpole, appeler les fonctions des autres fichiers
+#     pass
+
+
+
+# if __name__ == "__main__":
+#     main()
