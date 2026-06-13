@@ -7,7 +7,7 @@ def Fm_input(t, y):
     """
     Fonction TEMPORAIRE pour simuler le moteur
     """
-    return 1.0 # Force constante -> Tm constant
+    return 0.0 # Force constante -> Tm constant
 
 
 def cartpole_solve(t, y, A_fn:callable, b_fn:callable):

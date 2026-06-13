@@ -6,7 +6,7 @@ import numpy as np
 
 from matplotlib.animation import FFMpegWriter, FuncAnimation
 from matplotlib.patches import Circle, Rectangle
-from matplotlib.widgets import Button
+from matplotlib.widgets import Button, Slider
 
 from simulation.cart_pole.param import CartPoleParams, RailParams
 
@@ -133,6 +133,7 @@ def animate_cart_pole(
         color="gray",
         linestyle="-",
         linewidth=4,
+        zorder=1,
     )
 
     # Sol
@@ -202,7 +203,7 @@ def animate_cart_pole(
         facecolor="lightblue",
         edgecolor="black",
         linewidth=2,
-        animated=True,
+        animated=False,
     )
     ax.add_patch(cart)
 
@@ -213,7 +214,7 @@ def animate_cart_pole(
         facecolor="gray",
         edgecolor="black",
         linewidth=1.5,
-        animated=True,
+        animated=False,
     )
     ax.add_patch(left_wheel)
 
@@ -224,7 +225,7 @@ def animate_cart_pole(
         facecolor="gray",
         edgecolor="black",
         linewidth=1.5,
-        animated=True,
+        animated=False,
     )
     ax.add_patch(right_wheel)
 
@@ -235,7 +236,7 @@ def animate_cart_pole(
         facecolor="green",
         edgecolor="black",
         linewidth=2,
-        animated=True,
+        animated=False,
     )
     ax.add_patch(payload)
 
@@ -244,7 +245,7 @@ def animate_cart_pole(
         [],
         "ko",
         markersize=5,
-        animated=True,
+        animated=False,
     )
 
     rod_line, = ax.plot(
@@ -252,15 +253,15 @@ def animate_cart_pole(
         [],
         "b-",
         linewidth=2,
-        animated=True,
+        animated=False,
     )
 
     state_text = ax.text(
         0.02,
-        0.75,
+        0.80,
         "",
         transform=ax.transAxes,
-        animated=True,
+        animated=False,
     )
 
     #####################################################################################
@@ -316,48 +317,114 @@ def animate_cart_pole(
             state_text,
         )
 
-    def init():
-        return set_frame(0)
-
-    def animate(frame: int):
-        return set_frame(frame)
 
     #####################################################################################
-    # Animation
+    # Contrôles : slider + play/pause
+
+    plt.subplots_adjust(bottom=0.22)
+
+    # État partagé
+    animation_state = {
+        "frame": 0,
+        "is_paused": True,
+        "updating_slider": False,
+    }
+
+    # Slider
+    slider_ax = fig.add_axes([0.15, 0.08, 0.70, 0.04])
+
+    frame_slider = Slider(
+        ax=slider_ax,
+        label="Temps",
+        valmin=0,
+        valmax=num_frames - 1,
+        valinit=0,
+        valstep=1,
+    )
+
+    # Bouton Play/Pause
+    button_ax = fig.add_axes([0.42, 0.02, 0.16, 0.045])
+    play_pause_button = Button(button_ax, "Play")
+
+
+    def show_frame(frame: int):
+        """
+        Affiche une frame donnée et synchronise le slider.
+        """
+        frame = int(np.clip(frame, 0, num_frames - 1))
+        animation_state["frame"] = frame
+
+        set_frame(frame)
+
+        # Évite une boucle infinie :
+        # set_val -> update_from_slider -> show_frame -> set_val -> ...
+        animation_state["updating_slider"] = True
+        frame_slider.set_val(frame)
+        animation_state["updating_slider"] = False
+
+        fig.canvas.draw_idle()
+
+
+    def update_from_slider(val):
+        """
+        Appelé quand l'utilisateur déplace le slider.
+        """
+        if animation_state["updating_slider"]:
+            return
+
+        animation_state["is_paused"] = True
+        play_pause_button.label.set_text("Play")
+
+        show_frame(int(val))
+
+
+    def toggle_play_pause(event):
+        """
+        Appelé quand l'utilisateur clique sur Play/Pause.
+        """
+        animation_state["is_paused"] = not animation_state["is_paused"]
+
+        if animation_state["is_paused"]:
+            play_pause_button.label.set_text("Play")
+        else:
+            play_pause_button.label.set_text("Pause")
+
+
+    def animate_auto(_):
+        """
+        Fonction appelée automatiquement par FuncAnimation.
+        Elle avance la frame seulement si l'animation n'est pas en pause.
+        """
+        if animation_state["is_paused"]:
+            return set_frame(animation_state["frame"])
+
+        next_frame = animation_state["frame"] + 1
+
+        if next_frame >= num_frames:
+            next_frame = num_frames - 1
+            animation_state["is_paused"] = True
+            play_pause_button.label.set_text("Play")
+
+        show_frame(next_frame)
+
+        return set_frame(animation_state["frame"])
+
+
+    frame_slider.on_changed(update_from_slider)
+    play_pause_button.on_clicked(toggle_play_pause)
+
+    # Afficher la première frame au départ
+    show_frame(0)
 
     frametime_ms = int(1000 / target_fps)
 
     anim = FuncAnimation(
         fig,
-        animate,
-        frames=num_frames,
-        init_func=init,
+        animate_auto,
         interval=frametime_ms,
-        blit=True,
+        blit=False,
     )
 
-    is_paused = False
-
-    plt.subplots_adjust(bottom=0.18)
-
-    button_ax = fig.add_axes([0.42, 0.04, 0.16, 0.06])
-    play_pause_button = Button(button_ax, "Pause")
-
-
-    def toggle_play_pause(event):
-        nonlocal is_paused
-
-        if is_paused:
-            anim.event_source.start()
-            play_pause_button.label.set_text("Pause")
-            is_paused = False
-        else:
-            anim.event_source.stop()
-            play_pause_button.label.set_text("Play")
-            is_paused = True
-
-
-    play_pause_button.on_clicked(toggle_play_pause)
 
     if save_to_file:
         print("Saving the animation to file...")
