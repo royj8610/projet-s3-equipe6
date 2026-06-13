@@ -7,14 +7,12 @@
 L'ensemble des constantes du système et de l'environnement
 """
 
-
-class UnitConversion:
-    """Facteurs de conversion d'unités."""
-    CM_TO_M = 1/100
-
+from simulation.lib.math_utils import UnitConversion
 
 class CartPoleParams:
-    """Constantes physiques du système chariot-pendule."""
+    """
+    Constantes physiques du système chariot-pendule.
+    """
 
     # Masses
     M_CHARIOT = 0.8
@@ -37,14 +35,17 @@ class CartPoleParams:
     B_FROTT = 0.005
     B_X = 0
 
-    # Inertie
+    # Inertie - Non utilisé pour le moment
     I_XX_SAPIN = 0.00020
     I_YY_SAPIN = 0.00010
     I_ZZ_SAPIN = 0.00029
 
 
 class RailParams:
-    """Constantes de l'environnement (rail, obstacle, zone de dépôt)."""
+    """
+    Constantes de l'environnement (rail, obstacle, zone de dépôt).
+    Surtout utilisé pour l'animation
+    """
 
     RAIL_LENGTH = 1.7
 

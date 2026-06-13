@@ -1,3 +1,16 @@
+"""
+
+    Premier test de simulation
+
+    Ce fichier est déprécier, consulter le main.py pour
+    la version récente
+
+
+    Auteur : Jean-Nyckolas Roy
+    
+
+"""
+
 import sympy as sp
 import numpy as np
 import sympy.physics.mechanics as mec

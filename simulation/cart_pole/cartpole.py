@@ -2,6 +2,7 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 from simulation.cart_pole.symbolic import cartpole_symbolic
+from simulation.models.motor import Motor
 
 def Fm_input(t, y):
     """
@@ -18,7 +19,13 @@ def cartpole_solve(t, y, A_fn:callable, b_fn:callable):
     ----------
     y : list[float]
         Liste des variables indépendantes [x, theta, dx, dtheta].
-
+    A_fn : callable
+        Fonction numérique de la matrice A
+    b_fn : callable
+        Fonction numérique du vecteur solution b
+    moteur : Motor
+        Objet représentant le moteur utilisé
+    
     Returns
     -------
     list[float]
@@ -27,7 +34,7 @@ def cartpole_solve(t, y, A_fn:callable, b_fn:callable):
     x, theta, dx, dtheta = y
 
     # Force motrice en X
-    Fm = Fm_input(t, y)
+    Fm = Fm_input(t, y) # TODO : Remplacer par actual fonction de moteur
 
     A = np.array(A_fn(theta), dtype=float)
     b = np.array(b_fn(theta, dx, dtheta, Fm), dtype=float).reshape(2)
@@ -51,7 +58,7 @@ def cartpole_simulate(
 
     Parameters
     ----------
-    init_val :
+    init_val : np.ndarray
         Les valeurs initiales de l'intégration [x, theta, dx, dtheta]
     tf : float 
         Le temps de fin de l'intégration en seconde.
@@ -61,7 +68,9 @@ def cartpole_simulate(
     sol : 
         La solution du solve_ivp.
     """
+    # Création de fonction avec la dynamique
     A_fn, b_fn = cartpole_symbolic()
+
 
     sol = solve_ivp(
             fun=cartpole_solve,
@@ -69,9 +78,9 @@ def cartpole_simulate(
             y0=init_val,
             method="RK45",
             t_eval=np.linspace(0, tf, 1000), # Valeurs arbitraires
-            dense_output=True,  # Recommended for animation
-            args=(A_fn, b_fn),
-            # max_step=1e-3,  # Increases the number of elements (and compute time) by one order of magnitude.
+            dense_output=True,
+            args=(A_fn, b_fn), # arguments supplémentaires
+            # max_step=1e-3,  # Increases the number of elements (and compute time) by one order of magnitude. - Vient du template
             atol=1e-9,
             rtol=1e-6,
         )

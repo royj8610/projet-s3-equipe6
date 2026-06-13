@@ -6,6 +6,12 @@ from typing import TypeAlias
 
 Array: TypeAlias = np.ndarray[tuple[int], np.dtype[np.float32 | np.float64]]
 
+class UnitConversion:
+    """
+    Facteurs de conversion d'unités.
+    """
+
+    CM_TO_M = 1/100
 
 def centered_differentiation(x: Array, f: Array):
     """N.B. La précision est proportionnelle au carré du pas."""
