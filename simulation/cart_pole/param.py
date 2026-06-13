@@ -37,20 +37,39 @@ I_ZZ_SAPIN = 0.00029
 
 # Environnement
 RAIL_LENGTH = 1.7
-RAIL_HEIGHT = 0.05
+
+# Dimensions visuelles du véhicule
+CART_LENGTH = 0.16
+CART_HEIGHT = 0.08
+
+# Payload / sapin
+PAYLOAD_RADIUS = L_CCM_BQ
+
+# Position du pivot par rapport au rail
+# Le pivot est sous le chariot.
+PIVOT_Y = -CART_HEIGHT / 2
+
+# Point le plus bas possible du payload lorsque theta = 0
+PAYLOAD_LOWEST_Y = PIVOT_Y - L_ROD - PAYLOAD_RADIUS
+
+# Sol placé légèrement sous le point le plus bas du payload
+GROUND_CLEARANCE = 0.20
+GROUND_Y = PAYLOAD_LOWEST_Y - GROUND_CLEARANCE
+
+# Hauteur visuelle du rail par rapport au sol
+RAIL_HEIGHT = -GROUND_Y
 
 # Positions importantes
-DROPZONE_X = 120 * CM_TO_M
-OBSTACLE_X = 60 * CM_TO_M
+DROPZONE_X = 120 * CM_TO_M   # 1.20 m
+OBSTACLE_X = 60 * CM_TO_M    # 0.60 m
 
 # Drop zone
 DROPZONE_WIDTH = 0.20
 DROPZONE_HEIGHT = 0.10
 
-# Payload / sapin
-PAYLOAD_RADIUS = 4 * CM_TO_M
-
 # Obstacle
-# L'obstacle monte à 1 cm au-dessus du point le plus bas du pendule, payload inclus.
+# Le sommet de l'obstacle est 1 cm au-dessus du point le plus bas du pendule.
 OBSTACLE_CLEARANCE = 1 * CM_TO_M
-OBSTACLE_HEIGHT = L_ROD + PAYLOAD_RADIUS + OBSTACLE_CLEARANCE
+OBSTACLE_TOP_Y = PAYLOAD_LOWEST_Y + OBSTACLE_CLEARANCE
+OBSTACLE_HEIGHT = OBSTACLE_TOP_Y - GROUND_Y
+OBSTACLE_WIDTH = 0.02

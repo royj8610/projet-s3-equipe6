@@ -6,6 +6,7 @@ import numpy as np
 
 from matplotlib.animation import FFMpegWriter, FuncAnimation
 from matplotlib.patches import Circle, Rectangle
+from matplotlib.widgets import Button
 
 import simulation.cart_pole.param as const
 
@@ -45,7 +46,7 @@ def animate_cart_pole(
     rail_length = const.RAIL_LENGTH
     rail_y = 0.0
 
-    ground_y = rail_y - const.RAIL_HEIGHT
+    ground_y = const.GROUND_Y
 
     cart_width = const.CART_LENGTH
     cart_height = const.CART_HEIGHT
@@ -63,7 +64,7 @@ def animate_cart_pole(
     dropzone_height = const.DROPZONE_HEIGHT
 
     # Le point d'attache est sous le chariot, proche du rail.
-    pivot_y = rail_y - cart_height / 2
+    pivot_y = const.PIVOT_Y
 
     #####################################################################################
     # Position du payload
@@ -89,20 +90,9 @@ def animate_cart_pole(
         rail_length,
     ) + pad_x
 
-    y_min = min(
-        ground_y,
-        np.min(payload_ys) - payload_radius,
-    ) - 0.05
+    y_min = ground_y - 0.05
 
-    y_max = max(
-        rail_y + 0.15,
-        ground_y + obstacle_height + 0.05,
-    )
-
-    print("x min/max:", np.min(xs), np.max(xs))
-    print("payload y min/max:", np.min(payload_ys), np.max(payload_ys))
-    print("xlim:", x_min, x_max)
-    print("ylim:", y_min, y_max)
+    y_max = rail_y + 0.25
 
     #####################################################################################
     # Figure
@@ -126,15 +116,15 @@ def animate_cart_pole(
     ax.axvline(
         x=0.0,
         color="red",
-        linestyle="-",
-        linewidth=2,
+        linestyle="--",
+        linewidth=1,
     )
 
     ax.axvline(
         x=rail_length,
         color="red",
-        linestyle="-",
-        linewidth=2,
+        linestyle="--",
+        linewidth=1,
     )
 
     # Rail
@@ -160,11 +150,11 @@ def animate_cart_pole(
     #
     obstacle = Rectangle(
         (
-            obstacle_x - 0.01,
+            obstacle_x - const.OBSTACLE_WIDTH / 2,
             ground_y,
         ),
-        width=0.02,
-        height=obstacle_height,
+        width=const.OBSTACLE_WIDTH,
+        height=const.OBSTACLE_HEIGHT,
         fill=True,
         facecolor="red",
         edgecolor="darkred",
@@ -265,17 +255,9 @@ def animate_cart_pole(
         animated=True,
     )
 
-    time_text = ax.text(
-        0.02,
-        0.94,
-        "",
-        transform=ax.transAxes,
-        animated=True,
-    )
-
     state_text = ax.text(
         0.02,
-        0.84,
+        0.75,
         "",
         transform=ax.transAxes,
         animated=True,
@@ -317,9 +299,9 @@ def animate_cart_pole(
         rod_line.set_data([pivot_x, payload_x], [pivot_y, payload_y])
         payload.center = (payload_x, payload_y)
 
-        # Textes
-        time_text.set_text(f"t = {ts[frame]:.2f} s")
+        # Texte
         state_text.set_text(
+            f"t = {ts[frame]:.2f} s\n"
             f"x = {x:.3f} m\n"
             f"theta = {np.rad2deg(theta):.1f} deg"
         )
@@ -331,7 +313,6 @@ def animate_cart_pole(
             pivot_marker,
             rod_line,
             payload,
-            time_text,
             state_text,
         )
 
@@ -355,6 +336,29 @@ def animate_cart_pole(
         blit=True,
     )
 
+    is_paused = False
+
+    plt.subplots_adjust(bottom=0.18)
+
+    button_ax = fig.add_axes([0.42, 0.04, 0.16, 0.06])
+    play_pause_button = Button(button_ax, "Pause")
+
+
+    def toggle_play_pause(event):
+        nonlocal is_paused
+
+        if is_paused:
+            anim.event_source.start()
+            play_pause_button.label.set_text("Pause")
+            is_paused = False
+        else:
+            anim.event_source.stop()
+            play_pause_button.label.set_text("Play")
+            is_paused = True
+
+
+    play_pause_button.on_clicked(toggle_play_pause)
+
     if save_to_file:
         print("Saving the animation to file...")
 
@@ -372,204 +376,3 @@ def animate_cart_pole(
         anim.save(filename, writer=writer)
 
     plt.show(block=True)
-
-
-
-
-# # -*- coding: utf-8 -*-
-# #!/usr/bin/env python3
-
-# import matplotlib.pyplot as plt
-# import numpy as np
-# from matplotlib.animation import FFMpegWriter, FuncAnimation
-# from matplotlib.patches import Circle, Rectangle
-
-# from simulation.cart_pole.param import CartPoleParams, Rail
-
-# def animate_cart_pole(
-#     sol,
-#     save_to_file: bool = False,
-#     inverse: bool = False,
-#     new: bool = False,
-# ):
-#     """
-#     Animates a cart-pole system.
-
-#     Parameters:
-#         sol: Solution of the numerical integration.
-#         constants (dict[str, float]): Constants of the cart-pole (g, L, b, m, etc.).
-#     """
-#     # 1:1 time for animation
-#     target_fps: int = 60
-#     if new:
-#         sol_ts, xs, thetas = sol
-#         num_frames = int(np.ceil((sol_ts[-1] - sol_ts[0]) * target_fps)) + 1
-#         ts = np.linspace(sol_ts[0], sol_ts[-1], num_frames)
-#         xs = np.interp(ts, sol_ts, xs)
-#         thetas = np.interp(ts, sol_ts, thetas)
-#     else:
-#         num_frames = int(np.ceil((sol.t[-1] - sol.t[0]) * target_fps)) + 1
-#         ts = np.linspace(sol.t[0], sol.t[-1], num_frames)
-
-#         # Evaluation solution at animation timesteps
-#         if sol.sol is not None:
-#             xs, x_dots, thetas, theta_dots = sol.sol(ts)
-#         else:
-#             # NOTE: Should not happen if `dense_output=True`.
-#             xs = np.interp(ts, sol.t, sol.y[0])
-#             thetas = np.interp(ts, sol.t, sol.y[2])
-
-#     # Geometry
-#     L = CartPoleParams.rod_len + CartPoleParams.bob_height / 2
-#     origin = (0.0, 0.0)
-#     track_y = 0.0
-#     ground_y = track_y - Rail.rail_height
-#     cart_width = CartPoleParams.cart_length
-#     cart_height = CartPoleParams.cart_height
-#     wheel_radius = CartPoleParams.wheel_radius
-#     bob_radius = CartPoleParams.bob_height / 2
-
-#     bob_xs = xs + L * np.sin(thetas)
-#     pivot_y = track_y + cart_height / 2 + wheel_radius
-#     if inverse:
-#         bob_ys = pivot_y + L * np.cos(thetas)
-#     else:
-#         bob_ys = pivot_y - L * np.cos(thetas)
-
-#     # Track limits
-#     pad_x = 1.2 * L
-#     x_min = min(np.min(xs) - pad_x, 0.0)
-#     x_max = max(np.max(xs) + pad_x, Rail.length)
-#     y_min = ground_y
-#     y_max = pivot_y + L + bob_radius + 0.5
-
-#     fig, ax = plt.subplots(num="cart-pole-animation", figsize=(8, 6))
-#     ax.set_title("Cart-Pole System")
-#     ax.set_xlabel("Position (m)")
-#     ax.set_ylabel("Height (m)")
-#     ax.set_xlim(x_min, x_max)
-#     ax.set_ylim(y_min, y_max)
-#     ax.set_aspect("equal", adjustable="box")
-#     ax.grid(True, alpha=0.3)
-
-#     # World elements
-#     ax.axvline(x=0.0 - 0.01, color="red", linestyle="-", linewidth=2)  # Left rail limit
-#     ax.axvline(
-#         x=Rail.length + 0.01, color="red", linestyle="-", linewidth=2
-#     )  # Right rail limit
-#     ax.axhline(y=track_y, color="gray", linestyle="-", linewidth=3)
-#     ax.axhline(y=ground_y, color="black", linestyle="-", linewidth=3)
-#     ax.vlines(
-#         x=Rail.obstacle_x,
-#         ymin=ground_y,
-#         ymax=ground_y + Rail.obstacle_height,
-#         color="red",
-#         linestyle="-",
-#         linewidth=5,
-#     )
-#     # Dropzone
-#     ax.hlines(
-#         y=ground_y + 0.01,
-#         xmin=Rail.dropzone_x - 0.1,
-#         xmax=Rail.dropzone_x + 0.1,
-#         color="green",
-#         linestyle="-",
-#         linewidth=5,
-#         zorder=100,
-#     )
-#     ax.vlines(
-#         x=[Rail.dropzone_x - 0.1, Rail.dropzone_x + 0.1],
-#         ymin=[ground_y + 0.01, ground_y + 0.01],
-#         ymax=[ground_y + 0.1, ground_y + 0.1],
-#         color="green",
-#         linestyle="-",
-#         linewidth=5,
-#         zorder=100,
-#     )
-
-#     # Patches
-#     cart = Rectangle(
-#         origin,
-#         cart_width,
-#         cart_height,
-#         fill=True,
-#         facecolor="lightblue",
-#         edgecolor="black",
-#         linewidth=2,
-#         animated=True,
-#     )
-#     ax.add_patch(cart)
-#     left_wheel = Circle(
-#         origin,
-#         wheel_radius,
-#         fill=True,
-#         facecolor="gray",
-#         edgecolor="black",
-#         linewidth=2,
-#         animated=True,
-#     )
-#     ax.add_patch(left_wheel)
-#     right_wheel = Circle(
-#         origin,
-#         wheel_radius,
-#         fill=True,
-#         facecolor="gray",
-#         edgecolor="black",
-#         linewidth=2,
-#         animated=True,
-#     )
-#     ax.add_patch(right_wheel)
-#     bob = Circle(
-#         origin,
-#         bob_radius,
-#         fill=True,
-#         facecolor="green",
-#         edgecolor="black",
-#         linewidth=2,
-#         animated=True,
-#     )
-#     ax.add_patch(bob)
-
-#     # Other elements
-#     (pivot,) = ax.plot([], [], "k^", markersize=8)
-#     (pole_line,) = ax.plot([], [], "b-", linewidth=2)
-#     time_text = ax.text(0.02, 0.95, "", transform=ax.transAxes)
-
-#     def init():
-#         cart.set_xy((xs[0] - cart_width / 2, track_y + wheel_radius))
-#         left_wheel.center = (xs[0] - cart_width / 4, track_y + wheel_radius)
-#         right_wheel.center = (xs[0] + cart_width / 4, track_y + wheel_radius)
-#         bob.center = (bob_xs[0], bob_ys[0])
-#         pivot.set_data([xs[0]], [pivot_y])
-#         pole_line.set_data([xs[0], bob_xs[0]], [pivot_y, bob_ys[0]])
-#         time_text.set_text("")
-#         return cart, left_wheel, right_wheel, pivot, pole_line, bob, time_text
-
-#     def animate(frame: int):
-#         cart_x = xs[frame]
-#         bob_x, bob_y = bob_xs[frame], bob_ys[frame]
-#         cart.set_x(cart_x - cart_width / 2)
-#         left_wheel.center = (cart_x - cart_width / 3, track_y + wheel_radius)
-#         right_wheel.center = (cart_x + cart_width / 3, track_y + wheel_radius)
-#         bob.center = (bob_x, bob_y)
-#         pivot.set_xdata([cart_x])
-#         pole_line.set_data([cart_x, bob_x], [pivot_y, bob_y])
-#         time_text.set_text(f"Time: {ts[frame]:.2f}s")
-#         return cart, left_wheel, right_wheel, pivot, pole_line, bob, time_text
-
-#     frametime = int(1000 / target_fps)
-#     __anim = FuncAnimation(
-#         fig, animate, num_frames, init, interval=frametime, blit=True
-#     )
-
-#     if save_to_file:
-#         print("Saving the animation to file...")
-#         metadata = dict(
-#             title="Cart-pole animation",
-#             artist="Matplotlib",
-#             comment="Simple cart-pole system",
-#         )
-#         writer = FFMpegWriter(target_fps, metadata=metadata)
-#         __anim.save("simulation/assets/cart_pole.mp4", writer=writer)
-
-#     plt.show(block=True)
