@@ -8,7 +8,7 @@ from matplotlib.animation import FFMpegWriter, FuncAnimation
 from matplotlib.patches import Circle, Rectangle
 from matplotlib.widgets import Button
 
-import simulation.cart_pole.param as const
+from simulation.cart_pole.param import CartPoleParams, RailParams
 
 
 def animate_cart_pole(
@@ -43,28 +43,28 @@ def animate_cart_pole(
     #####################################################################################
     # Géométrie
 
-    rail_length = const.RAIL_LENGTH
+    rail_length = RailParams.RAIL_LENGTH
     rail_y = 0.0
 
-    ground_y = const.GROUND_Y
+    ground_y = RailParams.GROUND_Y
 
-    cart_width = const.CART_LENGTH
-    cart_height = const.CART_HEIGHT
+    cart_width = CartPoleParams.CART_LENGTH
+    cart_height = CartPoleParams.CART_HEIGHT
 
-    wheel_radius = const.R_WHEEL
+    wheel_radius = CartPoleParams.R_WHEEL
 
-    rod_length = const.L_ROD
-    payload_radius = const.PAYLOAD_RADIUS
+    rod_length = CartPoleParams.L_ROD
+    payload_radius = RailParams.PAYLOAD_RADIUS
 
-    obstacle_x = const.OBSTACLE_X
-    obstacle_height = const.OBSTACLE_HEIGHT
+    obstacle_x = RailParams.OBSTACLE_X
+    obstacle_height = RailParams.OBSTACLE_HEIGHT
 
-    dropzone_x = const.DROPZONE_X
-    dropzone_width = const.DROPZONE_WIDTH
-    dropzone_height = const.DROPZONE_HEIGHT
+    dropzone_x = RailParams.DROPZONE_X
+    dropzone_width = RailParams.DROPZONE_WIDTH
+    dropzone_height = RailParams.DROPZONE_HEIGHT
 
     # Le point d'attache est sous le chariot, proche du rail.
-    pivot_y = const.PIVOT_Y
+    pivot_y = RailParams.PIVOT_Y
 
     #####################################################################################
     # Position du payload
@@ -150,11 +150,11 @@ def animate_cart_pole(
     #
     obstacle = Rectangle(
         (
-            obstacle_x - const.OBSTACLE_WIDTH / 2,
+            obstacle_x - RailParams.OBSTACLE_WIDTH / 2,
             ground_y,
         ),
-        width=const.OBSTACLE_WIDTH,
-        height=const.OBSTACLE_HEIGHT,
+        width=RailParams.OBSTACLE_WIDTH,
+        height=RailParams.OBSTACLE_HEIGHT,
         fill=True,
         facecolor="red",
         edgecolor="darkred",

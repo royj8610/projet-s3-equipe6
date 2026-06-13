@@ -3,7 +3,7 @@
 import sympy as sp
 import sympy.physics.mechanics as mec
 
-from simulation.cart_pole import param as const
+from simulation.cart_pole.param import CartPoleParams
 
 def cartpole_symbolic():
     """
@@ -38,17 +38,17 @@ def cartpole_symbolic():
 
     # Constantes
     cst = {
-        mA: const.M_CHARIOT,
-        mQ: const.M_SAPIN,
-        mRod: const.M_ROD,
+        mA: CartPoleParams.M_CHARIOT,
+        mQ: CartPoleParams.M_SAPIN,
+        mRod: CartPoleParams.M_ROD,
 
-        L: const.L_ROD,
-        rw: const.R_WHEEL,
+        L: CartPoleParams.L_ROD,
+        rw: CartPoleParams.R_WHEEL,
 
-        g: const.G,
+        g: CartPoleParams.G,
 
-        b_theta: const.B_FROTT,
-        b_x: const.B_X,
+        b_theta: CartPoleParams.B_FROTT,
+        b_x: CartPoleParams.B_X,
     }
 
     #####################################################################################

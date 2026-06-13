@@ -6,70 +6,80 @@
 """
 L'ensemble des constantes du système et de l'environnement
 """
-# Facteurs de Convertion
-CM_TO_M = 1/100
 
-# Masses
-M_CHARIOT = 0.8
-M_SAPIN = 0.140
-M_ROD = 0.05
 
-# Dimensions
-L_ROD = 25 * CM_TO_M
-L_CCM_BQ = 0.048
-R_WHEEL = 2.5 * CM_TO_M
+class UnitConversion:
+    """Facteurs de conversion d'unités."""
+    CM_TO_M = 1/100
 
-# Dimensions visuelles du véhicule
-CART_LENGTH = 0.16
-CART_HEIGHT = 0.08
 
-# Gravité
-G = 9.81
+class CartPoleParams:
+    """Constantes physiques du système chariot-pendule."""
 
-# Pertes
-B_FROTT = 0.005
-B_X = 0
+    # Masses
+    M_CHARIOT = 0.8
+    M_SAPIN = 0.140
+    M_ROD = 0.05
 
-# Inertie
-I_XX_SAPIN = 0.00020
-I_YY_SAPIN = 0.00010
-I_ZZ_SAPIN = 0.00029
+    # Dimensions
+    L_ROD = 25 * UnitConversion.CM_TO_M
+    L_CCM_BQ = 0.048
+    R_WHEEL = 2.5 * UnitConversion.CM_TO_M
 
-# Environnement
-RAIL_LENGTH = 1.7
+    # Dimensions visuelles du véhicule
+    CART_LENGTH = 0.16
+    CART_HEIGHT = 0.08
 
-# Dimensions visuelles du véhicule
-CART_LENGTH = 0.16
-CART_HEIGHT = 0.08
+    # Gravité
+    G = 9.81
 
-# Payload / sapin
-PAYLOAD_RADIUS = L_CCM_BQ
+    # Pertes
+    B_FROTT = 0.005
+    B_X = 0
 
-# Position du pivot par rapport au rail
-# Le pivot est sous le chariot.
-PIVOT_Y = -CART_HEIGHT / 2
+    # Inertie
+    I_XX_SAPIN = 0.00020
+    I_YY_SAPIN = 0.00010
+    I_ZZ_SAPIN = 0.00029
 
-# Point le plus bas possible du payload lorsque theta = 0
-PAYLOAD_LOWEST_Y = PIVOT_Y - L_ROD - PAYLOAD_RADIUS
 
-# Sol placé légèrement sous le point le plus bas du payload
-GROUND_CLEARANCE = 0.20
-GROUND_Y = PAYLOAD_LOWEST_Y - GROUND_CLEARANCE
+class RailParams:
+    """Constantes de l'environnement (rail, obstacle, zone de dépôt)."""
 
-# Hauteur visuelle du rail par rapport au sol
-RAIL_HEIGHT = -GROUND_Y
+    RAIL_LENGTH = 1.7
 
-# Positions importantes
-DROPZONE_X = 120 * CM_TO_M   # 1.20 m
-OBSTACLE_X = 60 * CM_TO_M    # 0.60 m
+    # Dimensions visuelles du véhicule
+    CART_LENGTH = 0.16
+    CART_HEIGHT = 0.08
 
-# Drop zone
-DROPZONE_WIDTH = 0.20
-DROPZONE_HEIGHT = 0.10
+    # Payload / sapin
+    PAYLOAD_RADIUS = 4 * UnitConversion.CM_TO_M
 
-# Obstacle
-# Le sommet de l'obstacle est 1 cm au-dessus du point le plus bas du pendule.
-OBSTACLE_CLEARANCE = 1 * CM_TO_M
-OBSTACLE_TOP_Y = PAYLOAD_LOWEST_Y + OBSTACLE_CLEARANCE
-OBSTACLE_HEIGHT = OBSTACLE_TOP_Y - GROUND_Y
-OBSTACLE_WIDTH = 0.02
+    # Position du pivot par rapport au rail
+    # Le pivot est sous le chariot.
+    PIVOT_Y = -CART_HEIGHT / 2
+
+    # Point le plus bas possible du payload lorsque theta = 0
+    PAYLOAD_LOWEST_Y = PIVOT_Y - CartPoleParams.L_ROD - PAYLOAD_RADIUS
+
+    # Sol placé légèrement sous le point le plus bas du payload
+    GROUND_CLEARANCE = 0.20
+    GROUND_Y = PAYLOAD_LOWEST_Y - GROUND_CLEARANCE    # TODO : Trouver la valeur réelle
+
+    # Hauteur visuelle du rail par rapport au sol
+    RAIL_HEIGHT = -GROUND_Y
+
+    # Positions importantes
+    DROPZONE_X = 120 * UnitConversion.CM_TO_M   # 1.20 m
+    OBSTACLE_X = 60 * UnitConversion.CM_TO_M    # 0.60 m
+
+    # Drop zone
+    DROPZONE_WIDTH = 0.20
+    DROPZONE_HEIGHT = 0.10
+
+    # Obstacle
+    # Le sommet de l'obstacle est 1 cm au-dessus du point le plus bas du pendule.
+    OBSTACLE_CLEARANCE = 1 * UnitConversion.CM_TO_M
+    OBSTACLE_TOP_Y = PAYLOAD_LOWEST_Y + OBSTACLE_CLEARANCE
+    OBSTACLE_HEIGHT = OBSTACLE_TOP_Y - GROUND_Y
+    OBSTACLE_WIDTH = 0.02
