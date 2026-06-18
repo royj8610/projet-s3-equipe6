@@ -1,62 +1,77 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include <MPU6050.h>
 #include "inertie_centrale.h"
 
-// Fonction d'initialisation de la centrale inertielle
+// forcer l'adresse I2C a etre 0x69 
+#define IMU_ADDRESS 0x69
+
+// conversion par defaut de l'accelerometre :
+// plage ±2g -> 16384 LSB = 1 g
+#define ACCEL_SCALE 16384.0
+
+// Constante de gravite : 1 g = 9.81 m/s^2
+#define G_TO_MS2 9.81
+
+// objet IMU avec l'adresse 0x69
+MPU6050 imu(IMU_ADDRESS);
+
+// variables globales pour stocker les accelerations en m/s^2
+double accel_X = 0.0;
+double accel_Y = 0.0;
+double accel_Z = 0.0;
+
 void imu_init() {
-    // Démarre la communication I2C entre l'Arduino et les périphériques I2C
-    // Sur Arduino Mega, les broches I2C sont :
-    // SDA = pin 20
-    // SCL = pin 21
+    Serial.println("Initialisation de la centrale inertielle...");
+    Serial.flush();
+
     Wire.begin();
 
-    // Message affiché dans le moniteur série pour confirmer le début de l'initialisation
-    Serial.println("Initialisation IMU...");
+    // initialiser le capteur
+    imu.initialize();
+
+    Serial.println("Initialisation terminee. Lecture de l'acceleration...");
 }
 
-// Fonction qui scanne tous les appareils connectés au bus I2C
-void imu_scanI2C() {
-    byte error;              // Variable qui reçoit le résultat de la communication I2C
-    byte address;            // Adresse I2C testée
-    int devicesFound = 0;    // Compteur du nombre d'appareils détectés
+void imu_lireAcceleration() {
+    int16_t ax;
+    int16_t ay;
+    int16_t az;
 
-    Serial.println("Scan I2C en cours...");
+    // lecture brute de l'accelerometre
+    imu.getAcceleration(&ax, &ay, &az);
 
-    // Les adresses I2C possibles vont de 1 à 126
-    // On teste chaque adresse une par une
-    for (address = 1; address < 127; address++) {
+    // conversion des valeurs brutes en m/s^2
+    accel_X = (ax / ACCEL_SCALE) * G_TO_MS2;
+    accel_Y = (ay / ACCEL_SCALE) * G_TO_MS2;
+    accel_Z = (az / ACCEL_SCALE) * G_TO_MS2;
+}
 
-        // Début de la communication avec l'adresse testée
-        Wire.beginTransmission(address);
+void imu_afficherAcceleration() {
+    
+    imu_lireAcceleration();
 
-        // Fin de la communication
-        // Si error == 0, cela veut dire qu'un appareil a répondu
-        error = Wire.endTransmission();
+    Serial.print("Accel [m/s^2] X=");
+    Serial.print(accel_X);
 
-        // Si un appareil I2C est détecté à cette adresse
-        if (error == 0) {
-            Serial.print("Appareil I2C trouve a l'adresse 0x");
+    Serial.print(" Y=");
+    Serial.print(accel_Y);
 
-            // Ajoute un 0 devant les adresses plus petites que 0x10
-            // Exemple : affiche 0x0C au lieu de 0xC
-            if (address < 16) {
-                Serial.print("0");
-            }
+    Serial.print(" Z=");
+    Serial.println(accel_Z);
+}
 
-            // Affiche l'adresse en format hexadecimal
-            Serial.println(address, HEX);
+double imu_getAccelX() {
+    imu_lireAcceleration();
+    return accel_X;
+}
 
-            // Augmente le compteur d'appareils trouvés
-            devicesFound++;
-        }
-    }
+double imu_getAccelY() {
+    imu_lireAcceleration();
+    return accel_Y;
+}
 
-    // Si aucun appareil n'a été trouvé
-    if (devicesFound == 0) {
-        Serial.println("Aucun appareil I2C trouve.");
-    } 
-    // Si au moins un appareil a été trouvé
-    else {
-        Serial.println("Scan I2C termine.");
-    }
+double imu_getAccelZ() {
+    imu_lireAcceleration();
+    return accel_Z;
 }

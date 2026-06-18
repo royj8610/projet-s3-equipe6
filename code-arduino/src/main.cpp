@@ -28,10 +28,9 @@ void setup() {
     }
 
     imu_init();
-    imu_scanI2C();
 }
 
 void loop() {
-    delay(3000);
-    imu_scanI2C();
+    imu_afficherAcceleration();
+    delay(300);
 }

@@ -3,7 +3,15 @@
 
 #include <Arduino.h>
 
+
 void imu_init();
-void imu_scanI2C();
+
+
+void imu_afficherAcceleration();
+
+
+double imu_getAccelX();
+double imu_getAccelY();
+double imu_getAccelZ();
 
 #endif
