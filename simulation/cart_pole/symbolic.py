@@ -26,7 +26,7 @@ def cartpole_symbolic():
     b_x, b_theta = sp.symbols('b_x, b_theta')
 
     # Symboles forces
-    Fn, Ft = sp.symbols('Fn Ft')
+    # Fn, Ft = sp.symbols('Fn Ft')
     Fm = sp.symbols('Fm') # Force motrice vers l'avant (Moteur)
 
     # Symboles dynamiques
@@ -177,38 +177,3 @@ def cartpole_symbolic():
     # Return
     
     return A_fn, b_fn
-
-
-    # # Équation Forces A
-    # FA_lhs = mA*g*-N.y + 2*Fn*N.y + Ft*-B.y
-    # FA_rhs = chariot.linear_momentum(N).dt(N)
-
-    # # Équations Forces B
-    # FB_lhs = Ft*B.y + mRod*g*-N.y + mQ*g*-N.y
-    # FB_rhs = mec.functions.linear_momentum(N, rod, sapin).dt(N)
-
-    # # Équations Moments B
-    # MB_lhs = Bcm.pos_from(Bo).cross(-mRod*g*N.y) + Bc.pos_from(Bo).cross(-mQ*g*N.y) - const.B_FROTT*dtheta*N.z
-    # MB_rhs = (Izz_B + mQ*(L**2))*B.ang_acc_in(N) + (mRod + mQ)*Scm.pos_from(Bo).cross(Bo.acc(N))
-
-    # eqF_chariot = FA_rhs - FA_lhs
-    # eqF_sys = FB_rhs - FB_lhs
-    # edM_sys = MB_rhs - MB_lhs
-
-    # mat_A, mat_b = sp.linear_eq_to_matrix(
-    #     [
-    #         eqF_chariot.dot(N.x), 
-    #         edM_sys.dot(N.z),
-    #         eqF_sys.dot(B.y)
-    #     ], 
-    #     [
-    #         ddx, ddtheta, Ft
-    #     ]
-    # )
-
-    # get_ang_acc = sp.lambdify((theta, dtheta, ddx), sol1[0], modules="numpy")
-    # get_acc = sp.lambdify((theta, dtheta, ddtheta), sol2[0], modules="numpy")
-    # print(sol2[0])
-
-    # pos_bq = (Bc.pos_from(No).dot(N.x).subs(cst), Bc.pos_from(No).dot(N.y).subs(cst))
-    # get_pos_bq = sp.lambdify((theta, x), pos_bq, modules="numpy")

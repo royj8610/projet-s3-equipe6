@@ -35,10 +35,12 @@ def animate_cart_pole(
     ts = np.linspace(sol.t[0], sol.t[-1], num_frames)
 
     if sol.sol is not None:
-        xs, thetas, dxs, dthetas = sol.sol(ts)
+        xs, dxs, thetas, dthetas = sol.sol(ts)
     else:
         xs = np.interp(ts, sol.t, sol.y[0])
-        thetas = np.interp(ts, sol.t, sol.y[2])
+        thetas = np.interp(ts, sol.t, sol.y[1])
+        dxs = np.interp(ts, sol.t, sol.y[2])
+        dthetas = np.interp(ts, sol.t, sol.y[3])
 
     xs = np.clip(xs, 0.0, RailParams.RAIL_LENGTH) ### extremement louche
 
@@ -105,7 +107,8 @@ def animate_cart_pole(
     ax.set_xlabel("Position x (m)")
     ax.set_ylabel("Hauteur y (m)")
 
-    ax.set_xlim(x_min, x_max)
+    #ax.set_xlim(x_min, x_max)
+    ax.set_xlim(-0.2, 1.7)
     ax.set_ylim(y_min, y_max)
 
     ax.set_aspect("equal", adjustable="box")

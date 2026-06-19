@@ -1,18 +1,21 @@
 
+import numpy as np
 from simulation.cart_pole.cartpole import cartpole_simulate
 from simulation.visual.animations import animate_cart_pole
+from simulation.models.motor import Motor
 
 def main():
     """
     Point d'entré du programme.
     """
 
-    y0 = [0, 45*3.14/180, 0, 0] # [x, theta, dx, dtheta]
-    tf = 10
+    y0 = np.array([0, 0, 0, 0]) # [x, dx, theta, dtheta]
+    tf = 20
     
-    sol = cartpole_simulate(init_val=y0, tf=tf)
+    moteurA = Motor(kg=60/32)
+    sol = cartpole_simulate(init_val=y0, tf=tf, moteur=moteurA)
 
-    animate_cart_pole(sol)
+    animate_cart_pole(sol, False)
 
 
 if __name__ == "__main__":

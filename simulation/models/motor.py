@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python3
+
 from simulation.cart_pole.param import CartPoleParams
+
 
 class Motor:
     """

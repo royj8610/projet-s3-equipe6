@@ -6,8 +6,16 @@
 """
 L'ensemble des constantes du système et de l'environnement
 """
-
+import numpy as np
 from simulation.lib.math_utils import UnitConversion
+
+class SimulationParams:
+    """
+    Paramètre pour la simultation
+    """
+    START_X = 0
+    GOAL_X = 0.12 #m
+    SWING_ANGLE = -np.deg2rad(45)
 
 class CartPoleParams:
     """
@@ -49,16 +57,16 @@ class RailParams:
 
     RAIL_LENGTH = 1.7
 
-    # Dimensions visuelles du véhicule
-    CART_LENGTH = 0.16
-    CART_HEIGHT = 0.08
+    # # Dimensions visuelles du véhicule
+    # CART_LENGTH = 0.16
+    # CART_HEIGHT = 0.08
 
     # Payload / sapin
     PAYLOAD_RADIUS = 4 * UnitConversion.CM_TO_M
 
     # Position du pivot par rapport au rail
     # Le pivot est sous le chariot.
-    PIVOT_Y = -CART_HEIGHT / 2
+    PIVOT_Y = -CartPoleParams.CART_HEIGHT / 2
 
     # Point le plus bas possible du payload lorsque theta = 0
     PAYLOAD_LOWEST_Y = PIVOT_Y - CartPoleParams.L_ROD - PAYLOAD_RADIUS
