@@ -21,7 +21,7 @@ def animate_cart_pole(
 
     Hypothèses :
     - sol vient de solve_ivp
-    - sol.y = [x, dx, theta, dtheta]
+    - sol.y = [x, theta, dx, dtheta]
     - theta = 0 lorsque le pendule pointe verticalement vers le bas
     - x est la position horizontale du point d'attache du pendule / véhicule
     """
@@ -38,7 +38,9 @@ def animate_cart_pole(
         xs, thetas, dxs, dthetas = sol.sol(ts)
     else:
         xs = np.interp(ts, sol.t, sol.y[0])
-        thetas = np.interp(ts, sol.t, sol.y[2])
+        thetas = np.interp(ts, sol.t, sol.y[1])
+        dxs = np.interp(ts, sol.t, sol.y[2])
+        dthetas = np.interp(ts, sol.t, sol.y[3])
 
     #####################################################################################
     # Géométrie
@@ -103,7 +105,8 @@ def animate_cart_pole(
     ax.set_xlabel("Position x (m)")
     ax.set_ylabel("Hauteur y (m)")
 
-    ax.set_xlim(x_min, x_max)
+    #ax.set_xlim(x_min, x_max)
+    ax.set_xlim(x_min, 1.7)
     ax.set_ylim(y_min, y_max)
 
     ax.set_aspect("equal", adjustable="box")

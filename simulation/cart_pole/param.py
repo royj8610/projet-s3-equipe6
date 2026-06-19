@@ -49,16 +49,16 @@ class RailParams:
 
     RAIL_LENGTH = 1.7
 
-    # Dimensions visuelles du véhicule
-    CART_LENGTH = 0.16
-    CART_HEIGHT = 0.08
+    # # Dimensions visuelles du véhicule
+    # CART_LENGTH = 0.16
+    # CART_HEIGHT = 0.08
 
     # Payload / sapin
     PAYLOAD_RADIUS = 4 * UnitConversion.CM_TO_M
 
     # Position du pivot par rapport au rail
     # Le pivot est sous le chariot.
-    PIVOT_Y = -CART_HEIGHT / 2
+    PIVOT_Y = -CartPoleParams.CART_HEIGHT / 2
 
     # Point le plus bas possible du payload lorsque theta = 0
     PAYLOAD_LOWEST_Y = PIVOT_Y - CartPoleParams.L_ROD - PAYLOAD_RADIUS
