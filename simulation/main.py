@@ -9,13 +9,13 @@ def main():
     Point d'entré du programme.
     """
 
-    y0 = np.array([0, 45*np.pi/180, 0, 0]) # [x, dx, theta, dtheta]
-    tf = 10
+    y0 = np.array([0, 0, 0, 0]) # [x, dx, theta, dtheta]
+    tf = 20
     
-    moteurA = Motor(kg=1)
+    moteurA = Motor(kg=60/32)
     sol = cartpole_simulate(init_val=y0, tf=tf, moteur=moteurA)
 
-    animate_cart_pole(sol)
+    animate_cart_pole(sol, False)
 
 
 if __name__ == "__main__":

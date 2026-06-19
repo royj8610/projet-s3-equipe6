@@ -1,21 +1,31 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 
-import numpy as np   
+import numpy as np
+
 
 class SwingController:
     @staticmethod
-    def compute(t: float, state: np.ndarray, t0:float, target: float) -> float:
+    def compute(t: float, state: np.ndarray, t0: float, target: float) -> float:
         """
-        Retourne la commande u pendant la phase SWING.
+        Amène le pendule vers l'angle cible de swing.
 
-        Ici, c'est volontairement simple :
-        on applique une commande constante pour créer une oscillation.
+        Convention :
+            theta = 0      : pendule vertical vers le bas
+            theta < 0      : pendule vers la gauche
+            theta > 0      : pendule vers la droite
+
+        Objectif :
+            Atteindre environ target = -45 deg avec une vitesse angulaire
+            négative ou nulle, donc encore vers la gauche ou à l'apogée.
+
+        Retourne :
+            Tm : couple moteur demandé.
         """
         x, dx, theta, dtheta = state
 
-        u_max = 10.0
+        # TODO : 
 
-        # Exemple très simple :
-        # selon ton modèle, il faudra peut-être inverser le signe.
-        return u_max
+        Tm = 1.0
+
+        return Tm

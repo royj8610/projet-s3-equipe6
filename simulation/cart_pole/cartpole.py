@@ -34,14 +34,13 @@ def cartpole_solve(t, state, A_fn:Callable, b_fn:Callable, controller:StateMachi
     Returns
     -------
     list[float]
-        Dérivée des variables indépendantes [dx, dtheta, ddx, ddtheta].
+        Dérivée des variables indépendantes [dx, ddx, dtheta, ddtheta].
     """
     x, dx, theta, dtheta = state
 
     # Force motrice en X
-    controller.update_mode(t, state)
-    u = controller.compute(t, state)
-    Fm = moteur.voltage_to_torque(u) #Fm_input(t, y) # TODO : Remplacer par la bonne fonction du moteur, en attente de création par Reem
+    Tm = controller.compute(t, state)
+    Fm = moteur.torque_to_force(Tm)
 
     A = np.array(A_fn(theta), dtype=float)
     b = np.array(b_fn(theta, dx, dtheta, Fm), dtype=float).reshape(2)
@@ -50,8 +49,8 @@ def cartpole_solve(t, state, A_fn:Callable, b_fn:Callable, controller:StateMachi
 
     return [
         dx,
-        dtheta,
         ddx,
+        dtheta,
         ddtheta,
     ]
 
@@ -98,9 +97,12 @@ def cartpole_simulate(
             dense_output=True,
             args=(A_fn, b_fn, controller, moteur), # arguments supplémentaires
             # max_step=1e-3,
-            atol=1e-9,
-            rtol=1e-6,
+            atol=1e-7,
+            rtol=1e-5,
         )
 
+    if not sol.success:
+        print("solve_ivp a échoué.")
+        print("Message :", sol.message)
 
     return sol

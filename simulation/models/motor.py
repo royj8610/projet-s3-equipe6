@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 
+from simulation.cart_pole.param import CartPoleParams
+
+
 class Motor:
     """
     Représentation numérique d'un moteur physique
@@ -35,8 +38,26 @@ class Motor:
             Le torque calculé au niveau du moteur.
         """
         return 1.0
-    
-    
+
+
+    def torque_to_force(self, Tm: float) -> float:
+        """
+        Convertit le couple moteur Tm en force linéaire Fm
+        à partir du rapport de réduction et du rayon de roue.
+
+        Parameters
+        ----------
+        Tm : float
+            Le couple moteur (N·m).
+
+        Returns
+        -------
+        float
+            La force linéaire résultante (N).
+        """
+        return Tm / self.kg / CartPoleParams.R_WHEEL
+
+
     def torque_to_speed(self):
         pass
 

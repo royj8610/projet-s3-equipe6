@@ -44,17 +44,17 @@ class StateMachineController:
         if self.mode == Modes.SWING:
             # Si theta_swing_target = -45 deg,
             # on passe au prochain mode quand theta <= -45 deg.
-            if theta <= self.theta_swing_target and not self.check_tol(dtheta, 0):
+            if theta <= self.theta_swing_target and dtheta <= 0:
                 self.set_mode(Modes.MOVE_TO_X, t)
 
         elif self.mode == Modes.MOVE_TO_X:
             # Si x_target est plus grand que x initial, on vérifie x >= x_target.
             # Si x_target est plus petit, on vérifie x <= x_target.
             if self.x_target >= 0.0:
-                if x >= self.x_target and self.check_tol(dx, 0):
+                if x >= self.x_target:
                     self.set_mode(Modes.STABILIZE, t)
             else:
-                if x <= self.x_target and self.check_tol(dx, 0):
+                if x <= self.x_target:
                     self.set_mode(Modes.STABILIZE, t)
 
         elif self.mode == Modes.STABILIZE:

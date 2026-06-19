@@ -5,25 +5,26 @@ import numpy as np
 
 class StabilizeController:
     @staticmethod
-    def compute(t: float, state: np.ndarray, t0:float, target: float) -> float:
+    def compute(t: float, state: np.ndarray, t0: float, target: float) -> float:
         """
-        Stabilise le pendule vers theta = 0 tout en gardant x près de target.
+        Stabilise les 4 états du système.
+
+        Objectif :
+            x      -> target
+            dx     -> 0
+            theta  -> 0
+            dtheta -> 0
+
+        Convention :
+            theta = 0 correspond au pendule vertical vers le bas.
+
+        Retourne :
+            Tm : couple moteur demandé.
         """
         x, dx, theta, dtheta = state
 
-        kp_x = 15.0
-        kd_x = 8.0
+        # TODO :
 
-        kp_theta = 60.0
-        kd_theta = 15.0
+        Tm = 1.0
 
-        # Attention : le signe de theta dépend de ta convention.
-        # Si ça déstabilise au lieu de stabiliser, inverse le signe des termes angulaires.
-        u = (
-            kp_x * (target - x)
-            - kd_x * dx
-            - kp_theta * theta
-            - kd_theta * dtheta
-        )
-
-        return u
+        return float(Tm)
