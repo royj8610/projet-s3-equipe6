@@ -6,8 +6,16 @@
 """
 L'ensemble des constantes du système et de l'environnement
 """
-
+import numpy as np
 from simulation.lib.math_utils import UnitConversion
+
+class SimulationParams:
+    """
+    Paramètre pour la simultation
+    """
+    START_X = 0
+    GOAL_X = 0.12 #m
+    SWING_ANGLE = -np.deg2rad(45)
 
 class CartPoleParams:
     """

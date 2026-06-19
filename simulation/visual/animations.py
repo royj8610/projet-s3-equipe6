@@ -21,7 +21,7 @@ def animate_cart_pole(
 
     Hypothèses :
     - sol vient de solve_ivp
-    - sol.y = [x, theta, dx, dtheta]
+    - sol.y = [x, dx, theta, dtheta]
     - theta = 0 lorsque le pendule pointe verticalement vers le bas
     - x est la position horizontale du point d'attache du pendule / véhicule
     """

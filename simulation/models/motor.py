@@ -34,7 +34,7 @@ class Motor:
         float
             Le torque calculé au niveau du moteur.
         """
-        return 0.0
+        return 1.0
     
     
     def torque_to_speed(self):
@@ -55,6 +55,6 @@ class Motor:
         float
             La vitesse angulaire calculé au niveau du moteur.
         """
-        return 0.0
+        return 1.0
     
 
