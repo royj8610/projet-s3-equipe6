@@ -40,6 +40,8 @@ def animate_cart_pole(
         xs = np.interp(ts, sol.t, sol.y[0])
         thetas = np.interp(ts, sol.t, sol.y[2])
 
+    xs = np.clip(xs, 0.0, RailParams.RAIL_LENGTH) ### extremement louche
+
     #####################################################################################
     # Géométrie
 

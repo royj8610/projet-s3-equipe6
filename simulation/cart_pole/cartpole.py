@@ -4,11 +4,23 @@ from scipy.integrate import solve_ivp
 from simulation.cart_pole.symbolic import cartpole_symbolic
 from simulation.models.motor import Motor
 
-def Fm_input(t, y):
+def Fm_motor(t, y):
     """
-    Fonction TEMPORAIRE pour simuler le moteur
+    Fonction pour représenter le  force du moteur 
+    Pour tester
+    Reste à implémenter le state machine
     """
-    return 0.0 # Force constante -> Tm constant
+    motor = Motor()
+    x, dx, theta, dtheta = y
+
+    motor.velocity = dx
+    if (t < 1.0):  # Pour tester seulement
+        U = 0.2
+    else :
+        U = -0.2
+    Tm = motor.voltage_to_torque(U)
+    Fm = motor.torque_to_force(Tm)
+    return Fm # Force constante -> Tm constant
 
 
 def cartpole_solve(t, y, A_fn:callable, b_fn:callable):
@@ -34,7 +46,7 @@ def cartpole_solve(t, y, A_fn:callable, b_fn:callable):
     x, theta, dx, dtheta = y
 
     # Force motrice en X
-    Fm = Fm_input(t, y) # TODO : Remplacer par actual fonction de moteur
+    Fm = Fm_motor(t, y) # TODO : Remplacer par actual fonction de moteur
 
     A = np.array(A_fn(theta), dtype=float)
     b = np.array(b_fn(theta, dx, dtheta, Fm), dtype=float).reshape(2)
