@@ -27,7 +27,7 @@ class MoveToPointController:
         error_state = target_state - current_state
 
 
-        u = -MoveToPointController.K @ error_state
+        u = -K @ error_state
         Tm = float(u.item())
 
         return Tm #pas encore testé
