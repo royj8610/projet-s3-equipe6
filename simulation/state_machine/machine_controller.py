@@ -2,6 +2,8 @@
 import numpy as np
 from scipy.linalg import solve_continuous_are
 
+from simulation.cart_pole.param import RailParams, CartPoleParams
+
 from simulation.controllers.swing import SwingController
 from simulation.controllers.move_to_x import MoveToPointController
 from simulation.controllers.stabilize import StabilizeController
@@ -40,7 +42,7 @@ class StateMachineController:
         # Calcul K stabilisation
         R = np.array([[1]])
 
-        Q_STAB = np.diag([600, 1, 100, 10])
+        Q_STAB = np.diag([200, 1, 50, 10])
         P_STAB = solve_continuous_are(A_Jac, B_Jac, Q_STAB, R)
         self.k_stab = np.linalg.inv(R) @ B_Jac.T @ P_STAB
 
@@ -60,7 +62,13 @@ class StateMachineController:
             # Si theta_swing_target = -45 deg,
             # on passe au prochain mode quand theta <= -45 deg.
             if theta <= self.theta_swing_target and dtheta <= 0:
-                self.set_mode(Modes.MOVE_TO_X, t)
+                self.set_mode(Modes.PASS_WALL, t)
+                self.set_x_target(RailParams.DROPZONE_X)
+
+        elif self.mode == Modes.PASS_WALL:
+            # Si le pendule a passé le mur, on passe au prochain mode
+            if x + CartPoleParams.L_ROD*np.sin(theta) > RailParams.OBSTACLE_X:
+                self.set_mode(Modes.STABILIZE, t)
 
         elif self.mode == Modes.MOVE_TO_X:
             # Si x_target est plus grand que x initial, on vérifie x >= x_target.
@@ -122,6 +130,15 @@ class StateMachineController:
                     state,
                     self.t_mode_start, 
                     self.theta_swing_target
+                )
+            
+            case Modes.PASS_WALL:
+                return MoveToPointController.compute(
+                    t,
+                    state,
+                    self.k_goto,
+                    self.t_mode_start,
+                    self.x_target,
                 )
 
             case Modes.MOVE_TO_X:
