@@ -19,7 +19,7 @@ class StabilizeController:
             theta = 0 correspond au pendule vertical vers le bas.
 
         Retourne :
-            Tm : couple moteur demandé.
+            Fm : la force à appliquer sur le chariot
         """
         x, dx, theta, dtheta = state
 

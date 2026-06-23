@@ -77,7 +77,25 @@ class Motor:
         Fm = Tr / CartPoleParams.R_WHEEL
         return Fm
 
+    def force_to_torque(self, Fm: float) -> float:
+        """
+        Convertit la force linéaire Fm en couple moteur Tm
+        à partir du rapport de réduction et du rayon de roue.
 
+        Parameters
+        ----------
+        Fm : float
+            La force linéaire (N).
+
+        Returns
+        -------
+        float
+            Le couple du moteur (N.m).
+        """
+        Tr = Fm * CartPoleParams.R_WHEEL
+        Tm = Tr / self.kg
+
+        return Tm
     
     
 

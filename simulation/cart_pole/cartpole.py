@@ -57,8 +57,7 @@ def cartpole_solve(t, state, A_fn:Callable, b_fn:Callable, controller:StateMachi
     x, dx, theta, dtheta = state
 
     # Force motrice en X
-    Tm = controller.compute(t, state)
-    Fm = moteur.torque_to_force(Tm) # TODO : La dynamique est par rapport à Fm présentement, à changer pour Tm
+    Fm = controller.compute(t, state)
 
     A = np.array(A_fn(theta), dtype=float)
     b = np.array(b_fn(theta, dx, dtheta, Fm), dtype=float).reshape(2)
