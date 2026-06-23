@@ -202,4 +202,4 @@ def cartpole_symbolic():
     #####################################################################################
     # Return
     
-    return A_fn, b_fn
+    return A_fn, b_fn, np.asarray(A_eq, dtype=np.float64), np.asarray(B_eq, dtype=np.float64)

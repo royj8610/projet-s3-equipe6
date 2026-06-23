@@ -1,5 +1,7 @@
 
 import numpy as np
+from scipy.linalg import solve_continuous_are
+
 from simulation.controllers.swing import SwingController
 from simulation.controllers.move_to_x import MoveToPointController
 from simulation.controllers.stabilize import StabilizeController
@@ -19,7 +21,9 @@ class StateMachineController:
         self,
         theta_swing_target: float,
         x_target: float,
-        tol:float
+        tol:float,
+        A_Jac,
+        B_Jac
     ):
         self.mode = Modes.SWING
 
@@ -32,6 +36,13 @@ class StateMachineController:
 
         # Historique optionnel, utile pour déboguer ou tracer les transitions.
         self.mode_history: list[tuple[float, Modes]] = [(0.0, self.mode)]
+
+        # Calcul K stabilisation
+        R = np.array([[1]])
+
+        Q_STAB = np.diag([600, 1, 100, 10])
+        P_STAB = solve_continuous_are(A_Jac, B_Jac, Q_STAB, R)
+        self.k_stab = np.linalg.inv(R) @ B_Jac.T @ P_STAB
 
 
     def update_mode(self, t: float, state: np.ndarray) -> None:
@@ -104,7 +115,7 @@ class StateMachineController:
             case Modes.SWING:
                 return SwingController.compute(
                     t, 
-                    state, 
+                    state,
                     self.t_mode_start, 
                     self.theta_swing_target
                 )
@@ -113,6 +124,7 @@ class StateMachineController:
                 return MoveToPointController.compute(
                     t,
                     state,
+                    self.k_stab,
                     self.t_mode_start,
                     self.x_target,
                 )
@@ -121,6 +133,7 @@ class StateMachineController:
                 return StabilizeController.compute(
                     t,
                     state,
+                    self.k_stab,
                     self.t_mode_start,
                     self.x_target,
                 )

@@ -58,7 +58,7 @@ def cartpole_solve(t, state, A_fn:Callable, b_fn:Callable, controller:StateMachi
 
     # Force motrice en X
     Tm = controller.compute(t, state)
-    Fm = moteur.torque_to_force(Tm)
+    Fm = moteur.torque_to_force(Tm) # TODO : La dynamique est par rapport à Fm présentement, à changer pour Tm
 
     A = np.array(A_fn(theta), dtype=float)
     b = np.array(b_fn(theta, dx, dtheta, Fm), dtype=float).reshape(2)
@@ -94,7 +94,7 @@ def cartpole_simulate(
         La solution du solve_ivp.
     """
     # Création de fonction avec la dynamique
-    A_fn, b_fn = cartpole_symbolic()
+    A_fn, b_fn, A_Jac, B_Jac = cartpole_symbolic()
 
     # État initiale de la machine à états
     t0 = 0.0
@@ -102,7 +102,9 @@ def cartpole_simulate(
     controller = StateMachineController(
         SimulationParams.SWING_ANGLE, 
         SimulationParams.GOAL_X,
-        0.05
+        0.05,
+        A_Jac,
+        B_Jac
     )
 
     # Résolution

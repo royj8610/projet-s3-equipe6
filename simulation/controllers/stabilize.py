@@ -5,7 +5,7 @@ import numpy as np
 
 class StabilizeController:
     @staticmethod
-    def compute(t: float, state: np.ndarray, t0: float, target: float) -> float:
+    def compute(t: float, state: np.ndarray, k, t0: float, target: float) -> float:
         """
         Stabilise les 4 états du système.
 
@@ -23,8 +23,13 @@ class StabilizeController:
         """
         x, dx, theta, dtheta = state
 
-        # TODO :
+        error_state = np.array([
+            x - target,
+            dx,
+            np.sin(theta),
+            dtheta
+        ])
 
-        Tm = 1.0
+        u = -(k @ error_state)[0]
 
-        return float(Tm)
+        return float(u)
