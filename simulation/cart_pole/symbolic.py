@@ -1,7 +1,9 @@
 ## Développer la résolution de la dynamique du cartpole et des fonctions mathématiques associées
 
 import sympy as sp
+import numpy as np
 import sympy.physics.mechanics as mec
+from sympy.physics.vector import vprint
 
 from simulation.cart_pole.param import CartPoleParams
 
@@ -141,6 +143,30 @@ def cartpole_symbolic():
     M_rhs = M_dyn_rod + M_dyn_payload
 
     eq_moment_Ao = M_lhs.dot(N.z) - M_rhs.dot(N.z)
+
+    #####################################################################################
+
+    # Résolution symbolique
+    sol = sp.solve((eq_force_x.subs(cst), eq_moment_Ao.subs(cst)), (ddx, ddtheta), simplify=True)
+    ddx_expr = sp.simplify(sol[ddx])
+    ddtheta_expr = sp.simplify(sol[ddtheta])
+    
+    state = sp.Matrix([x, dx, theta, dtheta])
+    dstate = sp.Matrix([dx, ddx_expr, dtheta, ddtheta_expr])
+
+    A_Jac = dstate.jacobian(state)
+    B_Jac = dstate.jacobian([Fm])
+
+    equilibrium = {
+        x: 0,
+        dx: 0,
+        theta: 0,
+        dtheta: 0,
+        Fm: 0
+    }
+
+    A_eq = sp.simplify(A_Jac.subs(equilibrium))
+    B_eq = sp.simplify(B_Jac.subs(equilibrium))
 
     #####################################################################################
     # Système matriciel
