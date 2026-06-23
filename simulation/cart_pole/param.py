@@ -14,7 +14,7 @@ class SimulationParams:
     Paramètre pour la simultation
     """
     START_X = 0
-    GOAL_X = 0.12 #m
+    GOAL_X = 1.2 #m
     SWING_ANGLE = -np.deg2rad(45)
 
 class CartPoleParams:

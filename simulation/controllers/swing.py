@@ -26,6 +26,6 @@ class SwingController:
 
         # TODO : 
 
-        Tm = 1.0
+        Tm = 0.1
 
         return Tm
