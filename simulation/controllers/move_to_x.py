@@ -2,8 +2,6 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from simulation.cart_pole.cartpole import cartpole_symbolic
-from simulation.lib.lqr import compute_lqr_gain
 
 class MoveToPointController:
     @staticmethod
@@ -12,7 +10,7 @@ class MoveToPointController:
         Déplace le véhicule vers la position cible.
 
         Retourne :
-            Tm : couple moteur demandé.
+            Fm : la force à appliquer sur le chariot.
         """
         x, dx, theta, dtheta = state
         

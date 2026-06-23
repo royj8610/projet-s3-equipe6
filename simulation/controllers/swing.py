@@ -20,12 +20,12 @@ class SwingController:
             négative ou nulle, donc encore vers la gauche ou à l'apogée.
 
         Retourne :
-            Tm : couple moteur demandé.
+            Fm : la force à appliquer sur le chariot.
         """
         x, dx, theta, dtheta = state
 
         # TODO : 
 
-        Tm = 0.1
+        Fm = 0.1
 
-        return Tm
+        return Fm
