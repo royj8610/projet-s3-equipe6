@@ -44,6 +44,10 @@ class StateMachineController:
         P_STAB = solve_continuous_are(A_Jac, B_Jac, Q_STAB, R)
         self.k_stab = np.linalg.inv(R) @ B_Jac.T @ P_STAB
 
+        Q_GOTO = np.diag([100, 1, 0, 0])
+        P_GOTO = solve_continuous_are(A_Jac, B_Jac, Q_GOTO, R)
+        self.k_goto = np.linalg.inv(R) @ B_Jac.T @ P_GOTO
+
 
     def update_mode(self, t: float, state: np.ndarray) -> None:
         """
@@ -124,7 +128,7 @@ class StateMachineController:
                 return MoveToPointController.compute(
                     t,
                     state,
-                    self.k_stab,
+                    self.k_goto,
                     self.t_mode_start,
                     self.x_target,
                 )
