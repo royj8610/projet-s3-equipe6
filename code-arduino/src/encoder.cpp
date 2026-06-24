@@ -55,7 +55,7 @@ SPI WRITE TRANSACTION
 const int CS_encoderPin = 10; 
 const long maxClockSpeed = 1000000;
 
-void encoder_init() {
+void encoderInit() {
   Serial.begin(115200);
   SPISettings(maxClockSpeed, MSBFIRST, SPI_MODE1);
 
@@ -94,6 +94,9 @@ uint16_t buildReadCommand(uint16_t adress){
     return cmd;
 }
 
+// FUNCTION : reads the angle register of the encoder at given hexadecimal adress
+// ARGUMENT :
+// RETURNS :
 uint16_t readRegister(uint16_t adress){
 
     uint16_t cmd = buildReadCommand(adress);
@@ -125,7 +128,10 @@ float pulse2degree(uint16_t angleData){
     return angle;
 }
 
-float getAngle() {
+// FUNCTION : gets the angle from the encoder
+// ARGUMENT : None
+// RETURNS : angle in degrees
+float encoderGetAngle() {
     uint16_t registerData = readRegister(0x3FFF);
     uint16_t angleData = extractJustAngleData(registerData);
     float angle = pulse2degree(angleData);
