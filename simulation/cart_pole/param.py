@@ -41,7 +41,7 @@ class CartPoleParams:
 
     # Pertes
     B_FROTT = 0.005
-    B_X = 0
+    B_X = 0.005
 
     # Inertie - Non utilisé pour le moment
     I_XX_SAPIN = 0.00020

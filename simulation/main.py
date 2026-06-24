@@ -10,7 +10,7 @@ def main():
     """
 
     y0 = np.array([0, 0, 0, 0]) # [x, dx, theta, dtheta]
-    tf = 20
+    tf = 8
     
     moteurA = Motor(kg=60/32)
     sol = cartpole_simulate(init_val=y0, tf=tf, moteur=moteurA)
