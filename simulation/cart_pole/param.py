@@ -28,7 +28,7 @@ class CartPoleParams:
     M_ROD = 0.05
 
     # Dimensions
-    L_ROD = 25 * UnitConversion.CM_TO_M
+    L_ROD = 30 * UnitConversion.CM_TO_M
     L_CCM_BQ = 0.048
     R_WHEEL = 2.5 * UnitConversion.CM_TO_M
 

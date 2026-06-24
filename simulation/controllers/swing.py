@@ -26,6 +26,6 @@ class SwingController:
 
         # TODO : 
 
-        Fm = 0.1
+        Fm = 5.0
 
         return Fm
