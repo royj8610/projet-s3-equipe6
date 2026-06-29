@@ -3,10 +3,11 @@
 
 import numpy as np
 
+from simulation.cart_pole.param import CartPoleParams, RailParams
 
 class SwingController:
     @staticmethod
-    def compute(t: float, state: np.ndarray, t0: float, target: float) -> float:
+    def compute(t: float, state: np.ndarray, t0: float, target_y: float) -> float:
         """
         Amène le pendule vers l'angle cible de swing.
 
@@ -24,8 +25,17 @@ class SwingController:
         """
         x, dx, theta, dtheta = state
 
-        # TODO : 
+        # k = 10 # Factor
 
-        Fm = 5.0
+        # M = CartPoleParams.M_SAPIN
+        # G = CartPoleParams.G
+        # L = CartPoleParams.L_ROD
 
-        return Fm
+        # E = 0.5*M*(L**2)*(dtheta**2) + M*G*L*(1 - np.cos(theta))
+        # E_TARGET = M*G*target_y
+
+        # u = k*((E - E_TARGET)*dtheta*np.cos(theta) + 0.25 - x)
+
+        # return u
+
+        return 10.0
