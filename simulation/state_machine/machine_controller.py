@@ -21,7 +21,7 @@ class StateMachineController:
 
     def __init__(
         self,
-        theta_swing_target: float,
+        height_target: float,
         x_target: float,
         tol:float,
         A_Jac,
@@ -29,7 +29,7 @@ class StateMachineController:
     ):
         self.mode = Modes.SWING
 
-        self.theta_swing_target = theta_swing_target
+        self.height_target = height_target
         self.x_target = x_target
 
         self.tol = tol
@@ -58,11 +58,16 @@ class StateMachineController:
 
         x, dx, theta, dtheta = state
 
+        L = CartPoleParams.L_ROD
+
         if self.mode == Modes.SWING:
             # Si theta_swing_target = -45 deg,
             # on passe au prochain mode quand theta <= -45 deg.
-            if theta <= self.theta_swing_target and dtheta <= 0:
+            if L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0:
                 self.set_mode(Modes.PASS_WALL, t)
+                self.set_x_target(RailParams.DROPZONE_X)
+            elif x + CartPoleParams.L_ROD*np.sin(theta) > RailParams.OBSTACLE_X:
+                self.set_mode(Modes.STABILIZE, t)
                 self.set_x_target(RailParams.DROPZONE_X)
 
         elif self.mode == Modes.PASS_WALL:
@@ -129,7 +134,7 @@ class StateMachineController:
                     t, 
                     state,
                     self.t_mode_start, 
-                    self.theta_swing_target
+                    self.height_target
                 )
             
             case Modes.PASS_WALL:
