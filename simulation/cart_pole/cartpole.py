@@ -5,7 +5,7 @@ from scipy.integrate import solve_ivp
 from simulation.cart_pole.symbolic import cartpole_symbolic
 from simulation.models.motor import Motor
 from simulation.state_machine.machine_controller import StateMachineController
-from simulation.cart_pole.param import SimulationParams
+from simulation.cart_pole.param import SimulationParams, RailParams
 
 # def Fm_input(t, y):
 #     """
@@ -58,11 +58,16 @@ def cartpole_solve(t, state, A_fn:Callable, b_fn:Callable, controller:StateMachi
 
     # Force motrice en X
     Fm = controller.compute(t, state)
+    Fm = moteur.limit_force(Fm, dx)
+
+    #print(f"Fm: {Fm}, Tm: {moteur.force_to_torque(Fm)}")
 
     A = np.array(A_fn(theta), dtype=float)
     b = np.array(b_fn(theta, dx, dtheta, Fm), dtype=float).reshape(2)
 
     ddx, ddtheta = np.linalg.solve(A, b)
+
+    #dx = moteur.limit_speed(dx)
 
     return [
         dx,
@@ -99,7 +104,7 @@ def cartpole_simulate(
     t0 = 0.0
     state0 = init_val
     controller = StateMachineController(
-        SimulationParams.SWING_ANGLE, 
+        RailParams.OBSTACLE_CLEARANCE + 0.05, 
         SimulationParams.GOAL_X,
         0.05,
         A_Jac,

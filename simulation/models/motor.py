@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 
+import numpy as np
+
 from simulation.cart_pole.param import CartPoleParams
 
 
@@ -14,8 +16,10 @@ class Motor:
             self,
             kg= (60/32),
             R = 0.270,
-            ke = 0.0265,
-            kt=0.0265,
+            ke = 0.0,
+            kt=0.0,
+            no_load_speed=200, # En RPM
+            Tstall=210 # En kg.mm
         ):
         """
         Constructeur de la classe Motor
@@ -35,13 +39,15 @@ class Motor:
         self.R = R
         self.ke = ke
         self.kt = kt
+        self.Tstall = Tstall * 0.00980665
+        self.no_load_speed = no_load_speed * 0.104719755
 
         self.velocity = 0.0
         self.omega = self.velocity/CartPoleParams.R_WHEEL
 
     def voltage_to_torque(self, U: float) -> float:
         """
-        Convertie une tension d'entré en torque moteur.
+        Convertie une tension d'entrée en torque moteur.
 
         Parameters
         ----------
@@ -75,6 +81,7 @@ class Motor:
         """
         Tr = Tm * self.kg
         Fm = Tr / CartPoleParams.R_WHEEL
+
         return Fm
 
     def force_to_torque(self, Fm: float) -> float:
@@ -97,6 +104,12 @@ class Motor:
 
         return Tm
     
-    
+    def limit_force(self, Fm_target: float, dx: float):
+        omega_r = dx / CartPoleParams.R_WHEEL
+        omega_m = np.clip(omega_r * self.kg, -self.no_load_speed, self.no_load_speed)
 
+        Tmax = self.Tstall * (self.no_load_speed - omega_m) / self.no_load_speed
 
+        Fmax = self.torque_to_force(Tmax)
+
+        return np.clip(Fm_target, -Fmax, Fmax)
