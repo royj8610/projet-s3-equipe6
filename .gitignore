@@ -52,3 +52,7 @@ $RECYCLE.BIN/
 *.lnk
 .vscode/launch.json
 /.vscode
+
+# Interface Qt
+build-*/
+cmake-build-*/
