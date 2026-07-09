@@ -40,7 +40,7 @@ class StateMachineController:
         self.mode_history: list[tuple[float, Modes]] = [(0.0, self.mode)]
 
         # Calcul K stabilisation
-        R = np.array([[1]])
+        R = np.array([[0.1]])
 
         Q_STAB = np.diag([200, 1, 50, 10])
         P_STAB = solve_continuous_are(A_Jac, B_Jac, Q_STAB, R)
