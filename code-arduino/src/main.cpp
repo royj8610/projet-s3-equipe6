@@ -20,7 +20,7 @@
 //-----------------------------------------
 //                 Defines
 //-----------------------------------------
-#define DEBUG // Commenter pour retirer le mode debug
+// #define DEBUG // Commenter pour retirer le mode debug
 
 #ifdef DEBUG // Crée des macros pour faire rapidement disparaitre les prints de débug
 #define DEBUG_PRINT(x) Serial.print(x)
@@ -33,7 +33,9 @@
 //-----------------------------------------
 //               Constantes
 //-----------------------------------------
-const unsigned long periodeEnvoi = 1000; // 100 ms = 10 Hz
+const unsigned long DELAI_ENVOI = 1000; // 100 ms = 10 Hz
+const float LQR_MOVE[4] = {0, 0, 0, 0};
+const float LQR_STAB[4] = {0, 0, 0, 0};
 
 //-----------------------------------------
 //                Objects
@@ -45,7 +47,9 @@ Motor motor = Motor();
 //-----------------------------------------
 //                Variables
 //-----------------------------------------
-unsigned long dernierEnvoi = 0;
+unsigned long timerEnvoi = 0;
+unsigned long lastMeasureTime = millis();
+double lastAngle = 0;
 double targetPosition = 0.0;
 States robotState = States::Idle;
 
@@ -93,13 +97,14 @@ void setup()
 
   // Init motor
   motor.init();
+
+  // Init pour les mesures
+  lastAngle = encoPendule.readAngle();
+  lastMeasureTime = millis();
 }
 
 void loop()
 {
-  DEBUG_PRINTLN(encoPendule.readAngle());
-  return;
-
   // Lecture de la commande recu depuis le raspbrry
   if (communication.read())
   {
@@ -127,11 +132,16 @@ void loop()
   }
 
   // Prise des mesures
-  double position = 0; // TODO
+  unsigned long currentTime = millis();
+  float dt = (currentTime - lastMeasureTime) / 1000.0; // En sec
+  double position = 0;                                 // TODO
   double speed = 0;
-  double angle = 0;
-  double angularSpeed = 0;
+  double angle = encoPendule.readAngle();
+  double angularSpeed = (angle - lastAngle) / dt;
   double accelerationX = 0;
+
+  lastMeasureTime = currentTime;
+  lastAngle = angle;
 
   // Calcul de la commande moteur
   switch (robotState)
@@ -153,10 +163,10 @@ void loop()
   }
 
   // Envoie de l'état robot au raspberry
-  if (millis() - dernierEnvoi >= periodeEnvoi)
+  if (millis() - timerEnvoi >= DELAI_ENVOI)
   {
     DEBUG_PRINT("Send state : ");
-    dernierEnvoi = millis();
+    timerEnvoi = millis();
 
     CommJSON::RobotState state;
 
