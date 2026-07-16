@@ -12,6 +12,8 @@
     #define SERVO_PIN 33
     #define SERVO_OFFSET 0
 
+    #define AS5047P_CS_PIN 25
+
 #elif defined(BOARD_MEGA)
     // Includes
     #include <Servo.h>
@@ -25,6 +27,8 @@
 
     #define SERVO_PIN 1 // TODO : Needs to be updated according to wiring
     #define SERVO_OFFSET 0
+
+    #define AS5047P_CS_PIN 25 // TODO : Needs to be updated according to wiring
 
 #else
     // Throws a compilation error if neither board is selected

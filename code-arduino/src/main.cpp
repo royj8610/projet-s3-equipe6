@@ -38,7 +38,7 @@ const unsigned long periodeEnvoi = 100; // 100 ms = 10 Hz
 //                Objects
 //-----------------------------------------
 // CS pin 9, SPI speed default from library header (can pass a custom speed)
-AS5047P as5047p(9);
+AS5047P as5047p(AS5047P_CS_PIN);
 
 //-----------------------------------------
 //                Variables
