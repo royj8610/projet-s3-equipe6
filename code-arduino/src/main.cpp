@@ -13,6 +13,8 @@
 #include <AS5047P.h>
 #include "encoder.h"
 #include "communication_json.h"
+#include "board.h"
+#include "magnet.h"
 
 //-----------------------------------------
 //                 Defines
@@ -66,6 +68,9 @@ void setup()
 
   DEBUG_PRINTLN("> Init Communication Raspberry ");
   communication.init();
+  
+  // Init servo
+  magnetInit();
 }
 
 void loop()
