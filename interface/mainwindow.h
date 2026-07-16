@@ -62,7 +62,6 @@ private:
 //changé
     QLineSeries seriesA_;
     QChart chartA_;
-
     QLineSeries seriesB_;
     QChart chartB_;
 

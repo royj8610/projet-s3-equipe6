@@ -132,8 +132,9 @@ void MainWindow::connectButtons(){
      * widget2: this
      * slot: onLightButtonClicked()
     */
-    connect(ui->resetButton, SIGNAL(clicked(bool)), this, SLOT()
-    connect(ui->
+    connect(ui->resetButton, SIGNAL(clicked(bool)), this, SLOT(resetButtonClicked);
+    connect(ui->startButton, SIGNAL(clicked(bool)), this, SLOT();
+    connect(ui->stopButton, SIGNAL(clicked(bool)), this, SLOT());
 
     /*
      * Étape 4.2: Connecter le bouton pour envoyer un message
@@ -146,26 +147,40 @@ void MainWindow::connectButtons(){
     // TODO
 }
 
-void MainWindow::onLightButtonClicked() {
+void MainWindow::resetButtonClicked() {
     // Commenter au besoin
-    qDebug().noquote() <<"Bouton lumière";
-
-    /*
-     * Étape 5. Créer un objet QJsonObject contenant la paire: "turnOnLight" et la durée d'allumage en secondes.
-     * Décommenter le reste des lignes de la fonction ensuite. Ces lignes se chargent de formater
-     * le message et de le transmettre par le port série.
-    */
-    // TODO...
-
-    // Formatage en document JSON
-    // QJsonDocument doc(jsonObject);
-
-    // Casting en type QString
-    // QString strJson(doc.toJson(QJsonDocument::Compact));
-
-    // Envoi du message
-    // sendMessage(strJson);
+    qDebug().noquote() <<"Bouton reset";
+    QJsonDocument jsonObject{
+        {"reset", 1}
+    };
+    QJsonObject doc(jsonObject); // Formatage en document JSON
+    QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    sendMessage(strJson);   // Envoi du message
+    
 }
+
+void MainWindow::startButtonClicked() {
+    // Commenter au besoin
+    qDebug().noquote() <<"Bouton start";
+    QJsonDocument jsonObject{
+        {"start", 1}
+    };
+    QJsonObject doc(jsonObject); // Formatage en document JSON
+    QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    sendMessage(strJson);   // Envoi du message
+}
+
+void MainWindow::stopButtonClicked() {
+    // Commenter au besoin
+    qDebug().noquote() <<"Bouton stop";
+    QJsonDocument jsonObject{
+        {"start", 1}
+    };
+    QJsonObject doc(jsonObject); // Formatage en document JSON
+    QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    sendMessage(strJson);   // Envoi du message
+}
+
 
 void MainWindow::onMsgButtonClicked() {
     // Commenter au besoin
