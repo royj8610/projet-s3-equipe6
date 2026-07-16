@@ -34,16 +34,16 @@ public:
     virtual ~MainWindow() override;
     void closeEvent(QCloseEvent *event) override;
 
-    void sendMessage(QString msg);
+    void sendMessage(QString msg);//à changer
     void setUpdateRate(int rateMs);
 
     void onPeriodicUpdate();
-    void onMessageReceived(QString);
+    void onMessageReceived(QString);//à changer
 
 private slots:
     void receiveFromSerial(QString);
-    void onLightButtonClicked();
-    void onMsgButtonClicked();
+    void onLightButtonClicked(); //à changer
+    void onMsgButtonClicked(); //à changer
     void startSerialCom(QString);
 
 private:
@@ -59,11 +59,13 @@ private:
     QString msgBuffer_{""};
     SerialProtocol* serialCom_=nullptr;
 
-    // Étape 2.1: Ajouter un attribut QLineSeries series_
-    // TODO...
+//changé
+    QLineSeries seriesA_;
+    QChart chartA_;
 
-    // Étape 2.1: Ajouter un attribut QChart chart_
-    // TODO...
+    QLineSeries seriesB_;
+    QChart chartB_;
+
 
 protected:
     Ui::MainWindow *ui;

@@ -12,18 +12,18 @@ MainWindow::MainWindow(int updateRate, QWidget *parent):
     ui->setupUi(this);
     this->setWindowTitle("Atelier Qt");
 
-    // Initialisation du graphique
-    // Étape 2.2: Associer chart_ au QChartView dans l'interface
-    // TODO...
+    // Modifié
 
-    // Étape 2.3: Donner un titre au graphique
-    // TODO...
+    ui->graphA->setChart(&chartA_);
+    chartA_.setTitle("Robot A");
+    chartA_.legend()->hide();
+    chartA_.addSeries(&seriesA_);
+    ui->graphB->setChart(&chartA_);
+    chartB_.setTitle("Robot B");
+    chartB_.legend()->hide();
+    chartB_.addSeries(&seriesB_);
 
-    // Étape 2.4: Cacher la légende
-    // TODO...
 
-    // Étape 2.5: Associer series_ à chart_
-    // TODO...
 
     // Fonctions de connections events/slots
     connectTimers(updateRate);
