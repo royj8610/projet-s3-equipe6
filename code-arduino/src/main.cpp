@@ -9,11 +9,12 @@
 //                 IMPORTS
 //-----------------------------------------
 #include <Arduino.h>
-#include <SPI.h>
+#include <AS5047P.h>
 #include "encoder.h"
 #include "communication_json.h"
 #include "board.h"
 #include "magnet.h"
+#include "motor.h"
 #include "states.h"
 
 //-----------------------------------------
@@ -39,6 +40,7 @@ const unsigned long periodeEnvoi = 1000; // 100 ms = 10 Hz
 //-----------------------------------------
 PendulumEncoder encoPendule(46); // CS pin 9, SPI speed default from library header (can pass a custom speed)
 CommJSON communication(Serial);
+Motor motor = Motor();
 
 //-----------------------------------------
 //                Variables
@@ -88,6 +90,9 @@ void setup()
 
   // Init servo
   magnetInit();
+
+  // Init motor
+  motor.init();
 }
 
 void loop()
@@ -166,4 +171,16 @@ void loop()
 
     bool msgSent = communication.sendState(state);
   }
+
+  if (motor.fetchEncoderEstimates())
+  {
+    DEBUG_PRINT("Position : ");
+    DEBUG_PRINT(motor.getPosition());
+    DEBUG_PRINT(", Velocity : ");
+    DEBUG_PRINTLN(motor.getVelocity());
+  }
+
+  delay(100);
+
+  // DEBUG_PRINTLN(as5047p.readAngleDegree(true));
 }
