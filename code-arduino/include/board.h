@@ -12,7 +12,10 @@
     #define SERVO_PIN 33
     #define SERVO_OFFSET 0
 
-    #define AS5047P_CS_PIN 25
+    #define AS5047P_CS_PIN 25 // Encoder chip select pin
+    #define MCP2515_CS_PIN 32 // CAN module chip select pin
+
+    #define INTERRUPT_PIN 0
 
 #elif defined(BOARD_MEGA)
     // Includes
@@ -25,10 +28,13 @@
     #define SPI_MISO 50
     #define SPI_MOSI 51
 
-    #define SERVO_PIN 1 // TODO : Needs to be updated according to wiring
+    #define SERVO_PIN 2
     #define SERVO_OFFSET 0
 
-    #define AS5047P_CS_PIN 25 // TODO : Needs to be updated according to wiring
+    #define AS5047P_CS_PIN 46 // Encoder chip select pin
+    #define MCP2515_CS_PIN 47 // CAN module chip select pin
+
+    #define INTERRUPT_PIN 21
 
 #else
     // Throws a compilation error if neither board is selected
