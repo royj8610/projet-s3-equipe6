@@ -13,6 +13,8 @@
 #include <AS5047P.h>
 #include "encoder.h"
 #include "communication_json.h"
+#include "board.h"
+#include "magnet.h"
 
 //-----------------------------------------
 //                 Defines
@@ -62,6 +64,8 @@ void setup()
 
   initialiserCommunicationJson();
   
+  // Init servo
+  magnetInit();
 }
 
 void loop(){
