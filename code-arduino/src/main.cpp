@@ -15,6 +15,19 @@
 #include "communication_json.h"
 
 //-----------------------------------------
+//                 Defines
+//-----------------------------------------
+#define DEBUG // Commenter pour retirer le mode debug
+
+#ifdef DEBUG // Crée des macros pour faire rapidement disparaitre les prints de débug
+  #define DEBUG_PRINT(x)     Serial.print(x)
+  #define DEBUG_PRINTLN(x)   Serial.println(x)
+#else
+  #define DEBUG_PRINT(x)
+  #define DEBUG_PRINTLN(x)
+#endif
+
+//-----------------------------------------
 //               Constantes
 //-----------------------------------------
 const unsigned long periodeEnvoi = 100; // 100 ms = 10 Hz
@@ -40,12 +53,12 @@ void setup()
   delay(1000); // Attent un peu pour le start du sérial port
 
   // Init encoder AS50407
-  Serial.print("> Init AS5047P ");
+  DEBUG_PRINT("> Init AS5047P ");
   while (!as5047p.initSPI()) {
-    Serial.print(".");
+    DEBUG_PRINT(".");
     delay(500); 
   }
-  Serial.println(F("> AS5047P sensor successfully initialized."));
+  DEBUG_PRINTLN("> AS5047P sensor successfully initialized.");
 
   initialiserCommunicationJson();
   
@@ -60,5 +73,5 @@ void loop(){
     envoyerEtatAuRaspberry();
   }
 
-  Serial.print(as5047p.readAngleDegree(true));
+  DEBUG_PRINTLN(as5047p.readAngleDegree(true));
 }
