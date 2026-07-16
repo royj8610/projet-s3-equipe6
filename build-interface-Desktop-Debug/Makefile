@@ -401,7 +401,8 @@ compiler_uic_make_all: ui_mainwindow.h
 compiler_uic_clean:
 	-$(DEL_FILE) ui_mainwindow.h
 ui_mainwindow.h: ../interface/mainwindow.ui \
-		/usr/lib/qt5/bin/uic
+		/usr/lib/qt5/bin/uic \
+		/usr/include/aarch64-linux-gnu/qt5/QtCharts/qchartview.h
 	/usr/lib/qt5/bin/uic ../interface/mainwindow.ui -o ui_mainwindow.h
 
 compiler_yacc_decl_make_all:

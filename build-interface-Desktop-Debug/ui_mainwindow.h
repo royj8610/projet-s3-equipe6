@@ -12,7 +12,6 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
@@ -21,6 +20,7 @@
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include "qchartview.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -31,36 +31,36 @@ public:
     QGridLayout *gridLayout;
     QHBoxLayout *horizontalLayout_7;
     QSpacerItem *horizontalSpacer;
-    QLabel *label_3;
-    QLabel *label_4;
+    QLabel *totalTimeLabel;
+    QLabel *numTreeLabel;
     QSpacerItem *horizontalSpacer_2;
-    QGraphicsView *graphicsView_2;
-    QLabel *label_2;
-    QLabel *label;
-    QGraphicsView *graphicsView;
+    QChartView *graphB;
+    QLabel *moitieLabelB;
+    QLabel *moitieLabelA;
     QHBoxLayout *horizontalLayout_6;
     QVBoxLayout *verticalLayout;
-    QLabel *label_6;
-    QLabel *label_7;
+    QLabel *stateLabelA;
+    QLabel *cycleTimeLabelA;
     QSpacerItem *verticalSpacer_2;
     QVBoxLayout *verticalLayout_2;
-    QPushButton *pushButton_2;
-    QPushButton *pushButton_3;
-    QPushButton *pushButton;
+    QPushButton *startButton;
+    QPushButton *stopButton;
+    QPushButton *resetButton;
     QVBoxLayout *verticalLayout_3;
-    QLabel *label_8;
-    QLabel *label_9;
+    QLabel *stateLabelB;
+    QLabel *cycleTimeLabelB;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout_8;
     QLabel *label_5;
     QComboBox *comboBoxPort;
     QHBoxLayout *horizontalLayout_9;
+    QChartView *graphA;
 
     void setupUi(QMainWindow *MainWindow)
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(581, 371);
+        MainWindow->resize(800, 556);
         MainWindow->setAcceptDrops(false);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
@@ -75,15 +75,15 @@ public:
 
         horizontalLayout_7->addItem(horizontalSpacer);
 
-        label_3 = new QLabel(centralWidget);
-        label_3->setObjectName(QString::fromUtf8("label_3"));
+        totalTimeLabel = new QLabel(centralWidget);
+        totalTimeLabel->setObjectName(QString::fromUtf8("totalTimeLabel"));
 
-        horizontalLayout_7->addWidget(label_3);
+        horizontalLayout_7->addWidget(totalTimeLabel);
 
-        label_4 = new QLabel(centralWidget);
-        label_4->setObjectName(QString::fromUtf8("label_4"));
+        numTreeLabel = new QLabel(centralWidget);
+        numTreeLabel->setObjectName(QString::fromUtf8("numTreeLabel"));
 
-        horizontalLayout_7->addWidget(label_4);
+        horizontalLayout_7->addWidget(numTreeLabel);
 
         horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
@@ -92,25 +92,20 @@ public:
 
         gridLayout->addLayout(horizontalLayout_7, 0, 0, 1, 2);
 
-        graphicsView_2 = new QGraphicsView(centralWidget);
-        graphicsView_2->setObjectName(QString::fromUtf8("graphicsView_2"));
+        graphB = new QChartView(centralWidget);
+        graphB->setObjectName(QString::fromUtf8("graphB"));
 
-        gridLayout->addWidget(graphicsView_2, 3, 1, 1, 1);
+        gridLayout->addWidget(graphB, 3, 1, 1, 1);
 
-        label_2 = new QLabel(centralWidget);
-        label_2->setObjectName(QString::fromUtf8("label_2"));
+        moitieLabelB = new QLabel(centralWidget);
+        moitieLabelB->setObjectName(QString::fromUtf8("moitieLabelB"));
 
-        gridLayout->addWidget(label_2, 2, 1, 1, 1);
+        gridLayout->addWidget(moitieLabelB, 2, 1, 1, 1);
 
-        label = new QLabel(centralWidget);
-        label->setObjectName(QString::fromUtf8("label"));
+        moitieLabelA = new QLabel(centralWidget);
+        moitieLabelA->setObjectName(QString::fromUtf8("moitieLabelA"));
 
-        gridLayout->addWidget(label, 2, 0, 1, 1);
-
-        graphicsView = new QGraphicsView(centralWidget);
-        graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
-
-        gridLayout->addWidget(graphicsView, 3, 0, 1, 1);
+        gridLayout->addWidget(moitieLabelA, 2, 0, 1, 1);
 
         horizontalLayout_6 = new QHBoxLayout();
         horizontalLayout_6->setSpacing(6);
@@ -118,16 +113,16 @@ public:
         verticalLayout = new QVBoxLayout();
         verticalLayout->setSpacing(6);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
-        label_6 = new QLabel(centralWidget);
-        label_6->setObjectName(QString::fromUtf8("label_6"));
-        label_6->setLayoutDirection(Qt::LeftToRight);
+        stateLabelA = new QLabel(centralWidget);
+        stateLabelA->setObjectName(QString::fromUtf8("stateLabelA"));
+        stateLabelA->setLayoutDirection(Qt::LeftToRight);
 
-        verticalLayout->addWidget(label_6);
+        verticalLayout->addWidget(stateLabelA);
 
-        label_7 = new QLabel(centralWidget);
-        label_7->setObjectName(QString::fromUtf8("label_7"));
+        cycleTimeLabelA = new QLabel(centralWidget);
+        cycleTimeLabelA->setObjectName(QString::fromUtf8("cycleTimeLabelA"));
 
-        verticalLayout->addWidget(label_7);
+        verticalLayout->addWidget(cycleTimeLabelA);
 
         verticalSpacer_2 = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
@@ -139,20 +134,20 @@ public:
         verticalLayout_2 = new QVBoxLayout();
         verticalLayout_2->setSpacing(6);
         verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
-        pushButton_2 = new QPushButton(centralWidget);
-        pushButton_2->setObjectName(QString::fromUtf8("pushButton_2"));
+        startButton = new QPushButton(centralWidget);
+        startButton->setObjectName(QString::fromUtf8("startButton"));
 
-        verticalLayout_2->addWidget(pushButton_2);
+        verticalLayout_2->addWidget(startButton);
 
-        pushButton_3 = new QPushButton(centralWidget);
-        pushButton_3->setObjectName(QString::fromUtf8("pushButton_3"));
+        stopButton = new QPushButton(centralWidget);
+        stopButton->setObjectName(QString::fromUtf8("stopButton"));
 
-        verticalLayout_2->addWidget(pushButton_3);
+        verticalLayout_2->addWidget(stopButton);
 
-        pushButton = new QPushButton(centralWidget);
-        pushButton->setObjectName(QString::fromUtf8("pushButton"));
+        resetButton = new QPushButton(centralWidget);
+        resetButton->setObjectName(QString::fromUtf8("resetButton"));
 
-        verticalLayout_2->addWidget(pushButton);
+        verticalLayout_2->addWidget(resetButton);
 
 
         horizontalLayout_6->addLayout(verticalLayout_2);
@@ -160,15 +155,15 @@ public:
         verticalLayout_3 = new QVBoxLayout();
         verticalLayout_3->setSpacing(6);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
-        label_8 = new QLabel(centralWidget);
-        label_8->setObjectName(QString::fromUtf8("label_8"));
+        stateLabelB = new QLabel(centralWidget);
+        stateLabelB->setObjectName(QString::fromUtf8("stateLabelB"));
 
-        verticalLayout_3->addWidget(label_8, 0, Qt::AlignRight);
+        verticalLayout_3->addWidget(stateLabelB, 0, Qt::AlignRight);
 
-        label_9 = new QLabel(centralWidget);
-        label_9->setObjectName(QString::fromUtf8("label_9"));
+        cycleTimeLabelB = new QLabel(centralWidget);
+        cycleTimeLabelB->setObjectName(QString::fromUtf8("cycleTimeLabelB"));
 
-        verticalLayout_3->addWidget(label_9, 0, Qt::AlignRight);
+        verticalLayout_3->addWidget(cycleTimeLabelB, 0, Qt::AlignRight);
 
         verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
@@ -203,6 +198,11 @@ public:
 
         gridLayout->addLayout(horizontalLayout_9, 16, 1, 1, 1);
 
+        graphA = new QChartView(centralWidget);
+        graphA->setObjectName(QString::fromUtf8("graphA"));
+
+        gridLayout->addWidget(graphA, 3, 0, 1, 1);
+
         MainWindow->setCentralWidget(centralWidget);
 
         retranslateUi(MainWindow);
@@ -213,17 +213,17 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "Interface Identification", nullptr));
-        label_3->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
-        label_4->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
-        label_2->setText(QCoreApplication::translate("MainWindow", "Moiti\303\251 B", nullptr));
-        label->setText(QCoreApplication::translate("MainWindow", "Moiti\303\251 A", nullptr));
-        label_6->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
-        label_7->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
-        pushButton_2->setText(QCoreApplication::translate("MainWindow", "PushButton", nullptr));
-        pushButton_3->setText(QCoreApplication::translate("MainWindow", "PushButton", nullptr));
-        pushButton->setText(QCoreApplication::translate("MainWindow", "PushButton", nullptr));
-        label_8->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
-        label_9->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
+        totalTimeLabel->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
+        numTreeLabel->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
+        moitieLabelB->setText(QCoreApplication::translate("MainWindow", "Moiti\303\251 B", nullptr));
+        moitieLabelA->setText(QCoreApplication::translate("MainWindow", "Moiti\303\251 A", nullptr));
+        stateLabelA->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
+        cycleTimeLabelA->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
+        startButton->setText(QCoreApplication::translate("MainWindow", "Start", nullptr));
+        stopButton->setText(QCoreApplication::translate("MainWindow", "Stop", nullptr));
+        resetButton->setText(QCoreApplication::translate("MainWindow", "Reset", nullptr));
+        stateLabelB->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
+        cycleTimeLabelB->setText(QCoreApplication::translate("MainWindow", "TextLabel", nullptr));
         label_5->setText(QCoreApplication::translate("MainWindow", "Port:", nullptr));
     } // retranslateUi
 

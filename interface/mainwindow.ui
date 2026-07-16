@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>556</height>
+   </rect>
+  </property>
   <property name="acceptDrops">
    <bool>false</bool>
   </property>
@@ -54,27 +62,42 @@
       </item>
      </layout>
     </item>
-    <item row="3" column="1">
-     <widget class="QGraphicsView" name="graphB"/>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLabel" name="moitieLabelB">
-      <property name="text">
-       <string>Moitié B</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="moitieLabelA">
-      <property name="text">
-       <string>Moitié A</string>
-      </property>
-     </widget>
-    </item>
     <item row="3" column="0">
-     <widget class="QGraphicsView" name="graphA"/>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QLabel" name="moitieLabelA">
+        <property name="text">
+         <string>Moitié A</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="moitieLabelB">
+        <property name="text">
+         <string>Moitié B</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
-    <item row="12" column="0" rowspan="2" colspan="2">
+    <item row="21" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,1">
+      <item alignment="Qt::AlignLeft">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Port:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBoxPort"/>
+      </item>
+     </layout>
+    </item>
+    <item row="21" column="1">
+     <layout class="QHBoxLayout" name="horizontalLayout_9"/>
+    </item>
+    <item row="17" column="0" rowspan="2" colspan="2">
      <layout class="QHBoxLayout" name="horizontalLayout_6">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -168,27 +191,27 @@
       </item>
      </layout>
     </item>
-    <item row="16" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,1">
-      <item alignment="Qt::AlignLeft">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Port:</string>
-        </property>
-       </widget>
+    <item row="6" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QChartView" name="graphA"/>
       </item>
       <item>
-       <widget class="QComboBox" name="comboBoxPort"/>
+       <widget class="QChartView" name="graphB"/>
       </item>
      </layout>
-    </item>
-    <item row="16" column="1">
-     <layout class="QHBoxLayout" name="horizontalLayout_9"/>
     </item>
    </layout>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QChartView</class>
+   <extends>QGraphicsView</extends>
+   <header>qchartview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

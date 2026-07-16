@@ -42,8 +42,10 @@ public:
 
 private slots:
     void receiveFromSerial(QString);
-    void onLightButtonClicked(); //à changer
-    void onMsgButtonClicked(); //à changer
+    void resetButtonClicked(); //changé
+    void startButtonClicked(); //changé
+    void stopButtonClicked(); //changé
+
     void startSerialCom(QString);
 
 private:
@@ -60,10 +62,14 @@ private:
     SerialProtocol* serialCom_=nullptr;
 
 //changé
-    QLineSeries seriesA_;
     QChart chartA_;
-    QLineSeries seriesB_;
+    QLineSeries seriesApos_;
+    QLineSeries seriesAangle_;
+
     QChart chartB_;
+    QLineSeries seriesBpos_;
+    QLineSeries seriesBangle_;
+
 
 
 protected:

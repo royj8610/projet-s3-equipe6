@@ -17,11 +17,14 @@ MainWindow::MainWindow(int updateRate, QWidget *parent):
     ui->graphA->setChart(&chartA_);
     chartA_.setTitle("Robot A");
     chartA_.legend()->hide();
-    chartA_.addSeries(&seriesA_);
-    ui->graphB->setChart(&chartA_);
+    chartA_.addSeries(&seriesApos_);
+    chartA_.addSeries(&seriesAangle_);
+
+    ui->graphB->setChart(&chartB_);
     chartB_.setTitle("Robot B");
     chartB_.legend()->hide();
-    chartB_.addSeries(&seriesB_);
+    chartB_.addSeries(&seriesBpos_);
+    chartB_.addSeries(&seriesBangle_);
 
 
 
@@ -66,34 +69,44 @@ void MainWindow::receiveFromSerial(QString msg){
             QJsonObject jsonObj = jsonResponse.object();
 
             //modifié
+            //QString mess = jsonResponse.toJson(QJsonDocument::Indented);
+            //ui->textBrowser->setText(mess.mid(2,buff.length()-4));
 
             if(jsonObj.contains("positionA")) {
                 double time = jsonObj["time"].toDouble();
                 double positionA = jsonObj["positionA"].toDouble();
-                seriesA_.append(time, positionA);
-                chartA_.removeSeries(&seriesA_);
-                chartA_.addSeries(&seriesA_);
+                seriesApos_.append(time, positionA);
+                chartA_.removeSeries(&seriesApos_);
+                chartA_.addSeries(&seriesApos_);
                 chartA_.createDefaultAxes();
 
             }
-            //if(jsonObj.contains("angleA")) {
-              //  double time = jsonObj["time"].toDouble();
-               // double positionA = jsonObj["positionA"].toDouble();
-              //  seriesA_.append(time, positionA);
-             //   chartA_.removeSeries(&seriesA_);
-             //   chartA_.addSeries(&seriesA_);
-               // chartA_.createDefaultAxes();
+            if(jsonObj.contains("angleA")) {
+                double time = jsonObj["time"].toDouble();
+                double angleA = jsonObj["angleA"].toDouble();
+                seriesAangle_.append(time, angleA);
+                chartA_.removeSeries(&seriesAangle_);
+                chartA_.addSeries(&seriesAangle_);
+                chartA_.createDefaultAxes();
 
-            //}
-
-
+            }
 
             if(jsonObj.contains("positionB")) {
                 double time = jsonObj["time"].toDouble();
                 double positionB = jsonObj["positionB"].toDouble();
-                seriesB_.append(time, positionB);
-                chartB_.removeSeries(&seriesB_);
-                chartB_.addSeries(&seriesB_);
+                seriesBpos_.append(time, positionB);
+                chartB_.removeSeries(&seriesBpos_);
+                chartB_.addSeries(&seriesBpos_);
+                chartB_.createDefaultAxes();
+
+            }
+
+            if(jsonObj.contains("angleB")) {
+                double time = jsonObj["time"].toDouble();
+                double angleB = jsonObj["angleB"].toDouble();
+                seriesBangle_.append(time, angleB);
+                chartB_.removeSeries(&seriesBangle_);
+                chartB_.addSeries(&seriesBangle_);
                 chartB_.createDefaultAxes();
 
             }
@@ -124,52 +137,50 @@ void MainWindow::connectSerialPortRead(){
 }
 
 void MainWindow::connectButtons(){
-    /*
-     * Étape 4.1: Connecter le bouton pour allumer la lumière
-     * ---
-     * widget1: ui->lightButton
-     * signal: clicked()
-     * widget2: this
-     * slot: onLightButtonClicked()
-    */
-    connect(ui->resetButton, SIGNAL(clicked(bool)), this, SLOT()
-    connect(ui->
-
-    /*
-     * Étape 4.2: Connecter le bouton pour envoyer un message
-     * ---
-     * widget1: ui->msgButton
-     * signal: clicked()
-     * widget2: this
-     * slot: onMsgButtonClicked()
-    */
-    // TODO
+    // modifié
+    connect(ui->resetButton, SIGNAL(clicked(bool)), this, SLOT(resetButtonClicked()));
+    connect(ui->startButton, SIGNAL(clicked(bool)), this, SLOT(startButtonClicked()));
+    connect(ui->stopButton, SIGNAL(clicked(bool)), this, SLOT(stopButtonClicked()));
 }
 
-void MainWindow::onLightButtonClicked() {
-    // Commenter au besoin
-    qDebug().noquote() <<"Bouton lumière";
-
-    /*
-     * Étape 5. Créer un objet QJsonObject contenant la paire: "turnOnLight" et la durée d'allumage en secondes.
-     * Décommenter le reste des lignes de la fonction ensuite. Ces lignes se chargent de formater
-     * le message et de le transmettre par le port série.
-    */
-    // TODO...
-
-    // Formatage en document JSON
-    // QJsonDocument doc(jsonObject);
-
-    // Casting en type QString
-    // QString strJson(doc.toJson(QJsonDocument::Compact));
-
-    // Envoi du message
-    // sendMessage(strJson);
+void MainWindow::resetButtonClicked() {
+    // modifié
+    qDebug().noquote() <<"Bouton reset";
+    QJsonObject jsonObject{
+        {"reset", 1}
+    };
+    QJsonDocument doc(jsonObject); // Formatage en document JSON
+    QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    sendMessage(strJson);   // Envoi du message
 }
 
-void MainWindow::onMsgButtonClicked() {
+void MainWindow::startButtonClicked() {
+    // modifié
+    qDebug().noquote() <<"Bouton start";
+    QJsonObject jsonObject{
+        {"start", 1}
+    };
+    QJsonDocument doc(jsonObject); // Formatage en document JSON
+    QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    sendMessage(strJson);   // Envoi du message
+}
+
+void MainWindow::stopButtonClicked() {
+    // modifié
+    qDebug().noquote() <<"Bouton stop";
+    QJsonObject jsonObject
+    {
+        {"stop", 1}
+    };
+    QJsonDocument doc(jsonObject); // Formatage en document JSON
+    QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    sendMessage(strJson);   // Envoi du message
+}
+
+
+//void MainWindow::onMsgButtonClicked() {
     // Commenter au besoin
-    qDebug().noquote() <<"Bouton message";
+    //qDebug().noquote() <<"Bouton message";
 
     /*
      * Étape 6. Créer un objet QJsonObject contenant la paire: "usrMsg" et le texte de msgEditor.
@@ -186,7 +197,7 @@ void MainWindow::onMsgButtonClicked() {
 
     // Envoi du message
     // sendMessage(strJson);
-}
+//}
 
 void MainWindow::connectComboBox(){
     // Fonction de connection des entrees deroulantes
