@@ -72,6 +72,8 @@ private:
 
 
 
+
+
 protected:
     Ui::MainWindow *ui;
 };

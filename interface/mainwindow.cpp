@@ -13,12 +13,15 @@ MainWindow::MainWindow(int updateRate, QWidget *parent):
     this->setWindowTitle("Atelier Qt");
 
     // Modifié
-
     ui->graphA->setChart(&chartA_);
     chartA_.setTitle("Robot A");
-    chartA_.legend()->hide();
     chartA_.addSeries(&seriesApos_);
     chartA_.addSeries(&seriesAangle_);
+    QValueAxis* axisX = new QValueAxis();
+    axisX->setTitleText("tmt");
+    chartA_.addAxis(axisX, Qt::AlignBottom);
+    seriesApos_.attachAxis(axisX);
+
 
     ui->graphB->setChart(&chartB_);
     chartB_.setTitle("Robot B");
@@ -79,6 +82,7 @@ void MainWindow::receiveFromSerial(QString msg){
                 chartA_.removeSeries(&seriesApos_);
                 chartA_.addSeries(&seriesApos_);
                 chartA_.createDefaultAxes();
+                ui->totalTimeLabel->setText("Time: " + QString::number(time) + " sec");
 
             }
             if(jsonObj.contains("angleA")) {
