@@ -27,12 +27,14 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         serialprotocol.cpp \
-        csvwriter.cpp
+        csvwriter.cpp \
+        statemachine.cpp
 
 HEADERS += \
         mainwindow.h \
         serialprotocol.h \
-        csvwriter.h
+        csvwriter.h \
+        statemachine.h
 
 FORMS += \
         mainwindow.ui

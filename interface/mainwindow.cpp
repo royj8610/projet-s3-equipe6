@@ -24,6 +24,7 @@ MainWindow::MainWindow(int updateRate, QWidget *parent):
     chartA_.addSeries(&seriesAangle_);
 
 
+    stateMachine_ = StateMachine();
 
 
 
@@ -79,15 +80,15 @@ void MainWindow::receiveFromSerial(QString msg){
                 state = jsonObj.value("state").toString();
 
                 ui->totalTimeLabel->setText("Time: " + QString::number(getTime(),'f', 2) + " sec");
-                ui->stateLabelA->setText("State: " + getState());
+                ui->stateLabelA->setText("State: " + state);
 
-                seriesApos_.append(getTime(), getPosition());
+                seriesApos_.append(time, position);
                 chartA_.removeSeries(&seriesApos_);
                 chartA_.addSeries(&seriesApos_);
                 chartA_.createDefaultAxes();
 
 
-                seriesAangle_.append(getTime(), getAngle());
+                seriesAangle_.append(time, angle);
                 chartA_.removeSeries(&seriesAangle_);
                 chartA_.addSeries(&seriesAangle_);
                 chartA_.createDefaultAxes();
@@ -105,6 +106,26 @@ void MainWindow::receiveFromSerial(QString msg){
         // Reinitialisation du message tampon
         msgBuffer_ = "";
     }
+
+    stateMachine_.update(state);
+    QString nextState = stateMachine_.getState();
+    double x_target = stateMachine_.getTargetX();
+
+
+    QJsonObject jsonObject
+    {
+        {"cmd", nextState},
+        {"x_target", x_target}
+    };
+
+    QJsonDocument doc(jsonObject); // Formatage en document JSON
+    QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    sendMessage(strJson);
+
+
+
+
+
 }
 
 
@@ -190,54 +211,6 @@ void MainWindow::stopButtonClicked() {
     sendMessage(strJson);   // Envoi du message
 }
 
-void MainWindow::stateMachine(){
-
-    QString nextState;
-    double x_target = getPosition();
-
-    if(getState() == "IDLE"){
-        qDebug() << "Le robot est en attente";
-        nextState = "SWING";
-
-    }
-
-    else if(getState() == "SWING"){
-        qDebug() << "Le robot fait osciller le pendule.";
-        nextState = "MOVE_TO_X";
-    }
-
-    else if(getState() == "MOVE_TO_X"){
-        qDebug() << "Position actuelle" << getPosition();
-        nextState = "STABILIZE";
-
-    }
-
-    else if(getState() == "STABILIZE"){
-        qDebug() << "Le robot se stabilise";
-        nextState = "DROP";
-
-    }
-
-    else if (getState() == "DROP"){
-         qDebug() << "Le robot depose la charge";
-         nextState = "IDLE";
-    }
-
-    QJsonObject jsonObject
-    {
-        {"cmd", nextState},
-        {"x_target", x_target}
-    };
-
-    QJsonDocument doc(jsonObject); // Formatage en document JSON
-    QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
-    sendMessage(strJson);
-
-
-
-
-
-}
 
 void MainWindow::connectComboBox(){
     // Fonction de connection des entrees deroulantes

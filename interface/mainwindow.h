@@ -16,6 +16,7 @@
 
 // Propres librairies
 #include "serialprotocol.h"
+#include "statemachine.h"
 
 // Classe definissant l'application
 namespace Ui {
@@ -51,7 +52,6 @@ private slots:
     void resetButtonClicked(); //changé
     void startButtonClicked(); //changé
     void stopButtonClicked(); //changé
-    void stateMachine();
 
     void startSerialCom(QString);
 
@@ -88,6 +88,8 @@ private:
 
     bool slipDetected = false;
     bool arduinoReady = false;
+
+    StateMachine stateMachine_;
 
 
 
