@@ -45,10 +45,12 @@ class StateMachineController:
         Q_STAB = np.diag([200, 1, 50, 10])
         P_STAB = solve_continuous_are(A_Jac, B_Jac, Q_STAB, R)
         self.k_stab = np.linalg.inv(R) @ B_Jac.T @ P_STAB
+        print(f"k_stab : {self.k_stab}")
 
         Q_GOTO = np.diag([100, 1, 0, 0])
         P_GOTO = solve_continuous_are(A_Jac, B_Jac, Q_GOTO, R)
         self.k_goto = np.linalg.inv(R) @ B_Jac.T @ P_GOTO
+        print(f"k_goto : {self.k_goto}")
 
 
     def update_mode(self, t: float, state: np.ndarray) -> None:
