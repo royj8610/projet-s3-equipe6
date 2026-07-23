@@ -39,6 +39,11 @@ const unsigned long DELAI_ENVOI = 1000; // 100 ms = 10 Hz
 const float LQR_MOVE[4] = {31.6227766, 8.40881948, 1.06721826, 0.26126971};
 const float LQR_STAB[4] = {44.72135955, 24.48511986, -54.18831837, -5.26798942};
 
+const float L_ROD = 0.25;
+const float CLEARANCE = 0.015;
+
+const float TOL = 0.05;
+
 //-----------------------------------------
 //                Objects
 //-----------------------------------------
@@ -60,6 +65,14 @@ float targetAngle = 0;
 
 double targetPosition = 0.0;
 States robotState = States::Idle;
+
+//-----------------------------------------
+//                Fonctions
+//-----------------------------------------
+bool checkTol(float val, float target, float tol)
+{
+  return val <= target + tol && val >= target - tol;
+}
 
 //-----------------------------------------
 //                  Setup
@@ -184,6 +197,40 @@ void loop()
   lastMeasureTime = currentTime;
   lastAngle = angle;
 
+  if (currentTime - startTime < 15000)
+  {
+    robotState = States::Stabilize;
+  }
+  else
+  {
+    robotState = States::Idle;
+  }
+
+  // State machine temporaire - Condition depuis la state machine
+  if (Serial.available() && robotState == States::Idle)
+  {
+    robotState = States::Swing;
+  }
+  // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
+  else if (robotState == States::Swing && (L_ROD - L_ROD * cos(angle) > CLEARANCE) && (angle < 0) && (angularSpeed <= 0))
+  {
+    robotState = States::MoveToX;
+    targetPosition = 1.2;
+  }
+  else if (robotState == States::MoveToX && targetPosition == 1.2 && position >= targetPosition)
+  {
+    robotState = States::Stabilize;
+  }
+  else if (robotState == States::Stabilize && checkTol(angle, 0, TOL) && checkTol(angularSpeed, 0, TOL))
+  {
+    robotState = States::MoveToX;
+    targetPosition = 0;
+  }
+  else if (robotState == States::MoveToX && targetPosition == 0 && position <= targetPosition)
+  {
+    robotState = States::Idle;
+  }
+
   // Calcul de la commande moteur
   float goal[4] = {position - targetPosition, speed, sin(angle - targetAngle), angularSpeed};
   switch (robotState)
@@ -239,7 +286,4 @@ void loop()
     bool msgSent = communication.sendState(state);
   }
 
-  // delay(50);
-
-  // DEBUG_PRINTLN(as5047p.readAngleDegree(true));
-}
+} // Loop end
