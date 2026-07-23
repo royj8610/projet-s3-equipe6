@@ -21,17 +21,8 @@ MainWindow::MainWindow(int updateRate, QWidget *parent):
     chartA_.setTitle("Robot A");
     chartA_.addSeries(&seriesApos_);
     chartA_.addSeries(&seriesAangle_);
-    QValueAxis* axisX = new QValueAxis();
-    axisX->setTitleText("tmt");
-    chartA_.addAxis(axisX, Qt::AlignBottom);
     seriesApos_.attachAxis(axisX);
 
-
-    ui->graphB->setChart(&chartB_);
-    chartB_.setTitle("Robot B");
-    chartB_.legend()->hide();
-    chartB_.addSeries(&seriesBpos_);
-    chartB_.addSeries(&seriesBangle_);
 
 
 
@@ -81,32 +72,22 @@ void MainWindow::receiveFromSerial(QString msg){
 
             if(jsonObj.contains("type") && jsonObj["type"] == "robot_state") {
 
-                double time = jsonObj["time"].toDouble();
-                double position = jsonObj["x"].toDouble();
+                time = jsonObj["time"].toDouble() / 1000.0; // le temps est est en ms
+                position = jsonObj["x"].toDouble();
+                angle = jsonObj["angle"].toDouble();
+                state = jsonObj.value("state").toString();
 
-                seriesApos_.append(time, position);
-                chartA_.removeSeries(&seriesApos_);
-                chartA_.addSeries(&seriesApos_);
-                chartA_.createDefaultAxes();
-                ui->totalTimeLabel->setText("Time: " + QString::number(time) + " sec");
+                ui->totalTimeLabel->setText("Time: " + QString::number(getTime(),'f', 2) + " sec");
+                ui->stateLabelA->setText("State: " + getState());
 
-                QString state = jsonObj["state"];
-                ui->stateLabelA->setText("State: " + state);
+                seriesApos_.append(getTime(), getPosition());
+                seriesAangle_.append(getTime(), getAngle());
 
-
-                double angle = jsonObj["angle"].toDouble();
-                seriesAangle_.append(time, angle);
-                chartA_.removeSeries(&seriesAangle_);
-                chartA_.addSeries(&seriesAangle_);
-                chartA_.createDefaultAxes();
-
-
+                qDebug()
+                        << "Position" << getPosition()
+                        << "Angle"    << getAngle()
+                        << "State"    << getState();
             }
-
-
-
-
-
             else {
                 msgReceived_ = msgBuffer_;
                 onMessageReceived(msgReceived_);
@@ -116,6 +97,28 @@ void MainWindow::receiveFromSerial(QString msg){
         msgBuffer_ = "";
     }
 }
+
+
+QString MainWindow::getState() const
+{
+     return state;
+}
+double MainWindow::getPosition() const
+{
+    return position;
+}
+double MainWindow::getAngle() const
+{
+    return angle;
+}
+
+double MainWindow::getTime () const
+{
+    return time;
+}
+
+
+
 
 void MainWindow::connectTimers(int updateRate){
     // Fonction de connection de timers
@@ -150,7 +153,7 @@ void MainWindow::startButtonClicked() {
     // modifié
     qDebug().noquote() <<"Bouton start";
     QJsonObject jsonObject{
-        {"cmd", START}
+        {"cmd", "START"}
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
@@ -162,7 +165,7 @@ void MainWindow::stopButtonClicked() {
     qDebug().noquote() <<"Bouton stop";
     QJsonObject jsonObject
     {
-        {"cmd", STOP}
+        {"cmd", "STOP"}
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
@@ -170,26 +173,33 @@ void MainWindow::stopButtonClicked() {
 }
 
 void MainWindow::stateMachine(){
-    double x_target = 0.0;
-    if(receiveFromSerial.state == Idle){
-        x_target =  0.0;
+
+    QString nextState;
+    double x_target = getPosition();
+
+    if(getState() == "Idle"){
+        qDebug() << "Le robot est en attente";
 
     }
 
-    if(longueur_pondule && obstacle){
-        next_state = MoveToX;
-        x_target = 120.0;
-        next_state = Stabilize;
+    else if(getState() == "MoveToX"){
+        qDebug() << "Position actuelle"
+                 << getPosition();
+
     }
 
-    if(receiveFromSerial.state == Stabilize){
-        next_state = Drop;
-        next_state = Idle;
+    else if(getState() == "Stabilize"){
+        qDebug() << "Angle actuel"
+                 << getAngle();
+
+        if (qAbs(getAngle() < 1.0)
+                 qDebug() << "Le pendule est presque stable";
+
     }
 
-
-
-
+    else if (getState() == "Drop"){
+         qDebug() << "Le robot depose la charge";
+    }
 
     QJsonObject jsonObject
     {

@@ -40,6 +40,12 @@ public:
     void onPeriodicUpdate();
     void onMessageReceived(QString);//à changer
 
+    QString getState() const;
+    double getPosition() const;
+    double getAngle() const;
+    double getTime () const;
+
+
 private slots:
     void receiveFromSerial(QString);
     void resetButtonClicked(); //changé
@@ -70,6 +76,19 @@ private:
     QChart chartB_;
     QLineSeries seriesBpos_;
     QLineSeries seriesBangle_;
+
+    QString state = "Unknown";
+    double position = 0.0;
+    double angle = 0.0;
+    double time = 0.0;
+    double speed =0.0;
+    double angularSpeed = 0.0;
+    double acceleraionX = 0.0;
+    double targetPosition = 0.0;
+
+    bool slipDetected = false;
+    bool arduinoReady = false;
+
 
 
 
