@@ -10,6 +10,7 @@
 //-----------------------------------------
 #include <Arduino.h>
 #include <AS5047P.h>
+#include <cmath>
 #include "encoder.h"
 #include "communication_json.h"
 #include "board.h"
@@ -46,6 +47,7 @@ Motor motor = Motor();
 //                Variables
 //-----------------------------------------
 unsigned long dernierEnvoi = 0;
+unsigned long startTime = 0;
 double targetPosition = 0.0;
 String robotState = "IDLE";
 
@@ -74,7 +76,19 @@ void setup()
   magnetInit();
 
   // Init motor
+  Serial.print("Wait for calibration...");
+  while (Serial.available() == 0)
+  {
+    // Do nothing, just wait
+  }
   motor.init();
+
+  motor.setControllerMode(ControlMode::TORQUE, InputMode::PASSTHROUGH);
+  motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
+
+  delay(5000);
+
+  startTime = millis();
 }
 
 void loop()
@@ -124,15 +138,7 @@ void loop()
     bool msgSent = communication.sendState(state);
   }
 
-  if (motor.fetchEncoderEstimates())
-  {
-    DEBUG_PRINT("Position : ");
-    DEBUG_PRINT(motor.getPosition());
-    DEBUG_PRINT(", Velocity : ");
-    DEBUG_PRINTLN(motor.getVelocity());
-  }
-
-  delay(100);
+  delay(50);
 
   // DEBUG_PRINTLN(as5047p.readAngleDegree(true));
 }
