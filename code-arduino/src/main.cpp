@@ -42,7 +42,9 @@ const float LQR_STAB[4] = {44.72135955, 24.48511986, -54.18831837, -5.26798942};
 const float L_ROD = 0.25;
 const float CLEARANCE = 0.015;
 
-const float TOL = 0.05;
+const float TOL = 0.08;
+
+const float TARGET = 1.0;
 
 //-----------------------------------------
 //                Objects
@@ -117,24 +119,29 @@ void setup()
   magnetInit();
 
   // Init motor
-  Serial.print("Wait for calibration...");
+  Serial.println("Wait for calibration...");
   while (Serial.available() == 0)
   {
     // Do nothing, just wait
   }
+  Serial.read();
   motor.init();
 
   motor.setControllerMode(ControlMode::TORQUE, InputMode::PASSTHROUGH);
   motor.setAxisState(AxisState::IDLE);
 
-  Serial.print("Set robot to starting position...");
+  delay(500);
+
+  Serial.println("Set robot to starting position...");
+  Serial.read();
   while (Serial.available() == 0)
   {
     // Do nothing, just wait
   }
   motor.setOffset();
   motor.setForce(0.0);
-  motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
+
+  delay(500);
 
   startTime = millis();
   // Init pour les mesures
@@ -142,6 +149,8 @@ void setup()
   lastMeasureTime = millis();
 
   targetAngle = encoPendule.readAngleRad();
+
+  Serial.println("Ready to start");
 }
 
 //-----------------------------------------
@@ -197,38 +206,48 @@ void loop()
   lastMeasureTime = currentTime;
   lastAngle = angle;
 
-  if (currentTime - startTime < 15000)
-  {
-    robotState = States::Stabilize;
-  }
-  else
-  {
-    robotState = States::Idle;
-  }
-
   // State machine temporaire - Condition depuis la state machine
+  Serial.read();
   if (Serial.available() && robotState == States::Idle)
   {
+    delay(100);
+    motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
     robotState = States::Swing;
+  }
+  else if (Serial.available() && robotState != States::Idle)
+  {
+    Serial.println("Bailed out");
+    motor.setAxisState(AxisState::IDLE);
+    motor.setForce(0.0);
+    robotState = States::Idle;
+    delay(500);
   }
   // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
   else if (robotState == States::Swing && (L_ROD - L_ROD * cos(angle) > CLEARANCE) && (angle < 0) && (angularSpeed <= 0))
   {
     robotState = States::MoveToX;
-    targetPosition = 1.2;
+    targetPosition = TARGET;
   }
-  else if (robotState == States::MoveToX && targetPosition == 1.2 && position >= targetPosition)
+  // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
+  else if (robotState == States::Swing && position > 0.6)
+  {
+    robotState = States::MoveToX;
+    targetPosition = TARGET;
+  }
+  else if (robotState == States::MoveToX && targetPosition == TARGET && position >= 0.7)
   {
     robotState = States::Stabilize;
   }
-  else if (robotState == States::Stabilize && checkTol(angle, 0, TOL) && checkTol(angularSpeed, 0, TOL))
+  else if (robotState == States::Stabilize && checkTol(angle, targetAngle, TOL) && checkTol(angularSpeed, 0, TOL) && checkTol(position, targetPosition, 0.04))
   {
+    magnetDetach();
     robotState = States::MoveToX;
     targetPosition = 0;
   }
-  else if (robotState == States::MoveToX && targetPosition == 0 && position <= targetPosition)
+  else if (robotState == States::MoveToX && targetPosition == 0 && checkTol(position, targetPosition, 0.02))
   {
     robotState = States::Idle;
+    motor.setAxisState(AxisState::IDLE);
   }
 
   // Calcul de la commande moteur
@@ -255,13 +274,14 @@ void loop()
 
   case States::Swing:
   {
-    // TODO : Torque fixe (10 selon simu)
+    motor.setForce(100);
+
     break;
   }
 
   case States::Idle:
   {
-    motor.setAxisState(AxisState::IDLE);
+    motor.setForce(0.0);
     break;
   }
   }
