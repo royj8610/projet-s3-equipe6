@@ -1,9 +1,9 @@
 #include "motor.h"
 
 Motor::Motor()
+    : spi(SPI),
+      mcp2515(MCP2515_CS_PIN)
 {
-    mcp2515 = MCP2515(MCP2515_CS_PIN);
-    spi = SPIClass(VSPI);
 }
 
 void Motor::sendCAN(uint32_t id, uint8_t *data, uint8_t len)
@@ -94,8 +94,8 @@ void Motor::setPosition(float pos)
     struct
     {
         float pos;
-        float vel_ff;
-        float torque_ff;
+        int16_t vel_ff;
+        int16_t torque_ff;
 
     } msg;
 
@@ -147,7 +147,19 @@ float Motor::getVelocity()
 
 void Motor::init()
 {
-    spi.begin(SPI_SCK, SPI_MISO, SPI_MOSI, MCP2515_CS_PIN);
+#if defined(BOARD_ESP32)
+    spi.begin(
+        SPI_SCK,
+        SPI_MISO,
+        SPI_MOSI,
+        MCP2515_CS_PIN);
+
+#elif defined(BOARD_MEGA)
+    pinMode(53, OUTPUT);
+    digitalWrite(53, HIGH);
+
+    spi.begin();
+#endif
 
     mcp2515.reset();
 

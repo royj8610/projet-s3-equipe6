@@ -31,7 +31,7 @@ class Motor
 {
 private:
     MCP2515 mcp2515 = MCP2515(MCP2515_CS_PIN);
-    SPIClass spi = SPIClass(VSPI);
+    SPIClass &spi = SPI;
 
     const float position_offset = 0;
 
