@@ -19,9 +19,10 @@ MainWindow::MainWindow(int updateRate, QWidget *parent):
     // Modifié
     ui->graphA->setChart(&chartA_);
     chartA_.setTitle("Robot A");
+    chartA_.legend()->hide();
     chartA_.addSeries(&seriesApos_);
     chartA_.addSeries(&seriesAangle_);
-    seriesApos_.attachAxis(axisX);
+
 
 
 
@@ -63,7 +64,7 @@ void MainWindow::receiveFromSerial(QString msg){
         QJsonDocument jsonResponse = QJsonDocument::fromJson(msgBuffer_.toUtf8());
 
         // Analyse du message Json
-        if(~jsonResponse.isEmpty()){
+        if(!jsonResponse.isEmpty()){
             QJsonObject jsonObj = jsonResponse.object();
 
             //modifié
@@ -81,7 +82,15 @@ void MainWindow::receiveFromSerial(QString msg){
                 ui->stateLabelA->setText("State: " + getState());
 
                 seriesApos_.append(getTime(), getPosition());
+                chartA_.removeSeries(&seriesApos_);
+                chartA_.addSeries(&seriesApos_);
+                chartA_.createDefaultAxes();
+
+
                 seriesAangle_.append(getTime(), getAngle());
+                chartA_.removeSeries(&seriesAangle_);
+                chartA_.addSeries(&seriesAangle_);
+                chartA_.createDefaultAxes();
 
                 qDebug()
                         << "Position" << getPosition()
@@ -142,7 +151,11 @@ void MainWindow::resetButtonClicked() {
     // modifié
     qDebug().noquote() <<"Bouton reset";
     QJsonObject jsonObject{
-        {"cmd", RESET}
+
+            {"cmd", "RESET"}
+
+
+
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
@@ -153,7 +166,10 @@ void MainWindow::startButtonClicked() {
     // modifié
     qDebug().noquote() <<"Bouton start";
     QJsonObject jsonObject{
-        {"cmd", "START"}
+
+            {"cmd", "START"}
+
+
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
@@ -165,7 +181,9 @@ void MainWindow::stopButtonClicked() {
     qDebug().noquote() <<"Bouton stop";
     QJsonObject jsonObject
     {
-        {"cmd", "STOP"}
+
+            {"cmd", "STOP"}
+
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
@@ -177,34 +195,38 @@ void MainWindow::stateMachine(){
     QString nextState;
     double x_target = getPosition();
 
-    if(getState() == "Idle"){
+    if(getState() == "IDLE"){
         qDebug() << "Le robot est en attente";
+        nextState = "SWING";
 
     }
 
-    else if(getState() == "MoveToX"){
-        qDebug() << "Position actuelle"
-                 << getPosition();
+    else if(getState() == "SWING"){
+        qDebug() << "Le robot fait osciller le pendule.";
+        nextState = "MOVE_TO_X";
+    }
+
+    else if(getState() == "MOVE_TO_X"){
+        qDebug() << "Position actuelle" << getPosition();
+        nextState = "STABILIZE";
 
     }
 
-    else if(getState() == "Stabilize"){
-        qDebug() << "Angle actuel"
-                 << getAngle();
-
-        if (qAbs(getAngle() < 1.0)
-                 qDebug() << "Le pendule est presque stable";
+    else if(getState() == "STABILIZE"){
+        qDebug() << "Le robot se stabilise";
+        nextState = "DROP";
 
     }
 
-    else if (getState() == "Drop"){
+    else if (getState() == "DROP"){
          qDebug() << "Le robot depose la charge";
+         nextState = "IDLE";
     }
 
     QJsonObject jsonObject
     {
-        {"cmd", next_state},
-        {"x_target", target}
+        {"cmd", nextState},
+        {"x_target", x_target}
     };
 
     QJsonDocument doc(jsonObject); // Formatage en document JSON
