@@ -43,7 +43,7 @@ const float LQR_STAB[4] = {0, 0, 0, 0};
 //-----------------------------------------
 PendulumEncoder encoPendule(46); // CS pin 9, SPI speed default from library header (can pass a custom speed)
 CommJSON communication(Serial);
-Motor motor = Motor();
+Motor motor = Motor(IS_ARDUINO);
 
 //-----------------------------------------
 //                Variables

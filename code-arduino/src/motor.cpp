@@ -1,9 +1,16 @@
 #include "motor.h"
 
-Motor::Motor()
+Motor::Motor(bool invert_direction)
 {
     mcp2515 = MCP2515(MCP2515_CS_PIN);
     spi = SPIClass(VSPI);
+
+    if (invert_direction)
+    {
+        this->kg *= -1.0;
+    }
+
+    pos_factor = (3.141593 * this->wheel_diameter) / this->kg;
 }
 
 void Motor::sendCAN(uint32_t id, uint8_t *data, uint8_t len)
@@ -132,6 +139,7 @@ void Motor::setAxisState(uint32_t axis_state)
         4);
 }
 
+// Set position, in m
 void Motor::setPosition(float pos)
 {
     struct
@@ -142,7 +150,7 @@ void Motor::setPosition(float pos)
 
     } msg;
 
-    msg.pos = pos;
+    msg.pos = (pos / this->pos_factor) + this->position_offset;
     msg.vel_ff = 0;
     msg.torque_ff = 0;
 
@@ -152,6 +160,7 @@ void Motor::setPosition(float pos)
         8);
 }
 
+// set velocity, in m/s
 void Motor::setVelocity(float vel)
 {
     struct
@@ -161,7 +170,7 @@ void Motor::setVelocity(float vel)
 
     } msg;
 
-    msg.vel = vel;
+    msg.vel = vel / this->pos_factor;
     msg.input_torque_ff = 0;
 
     sendCAN(
@@ -170,12 +179,30 @@ void Motor::setVelocity(float vel)
         8);
 }
 
+// Set motor torque, in N.m
 void Motor::setTorque(float torque)
 {
     sendCAN(
         (NODE_ID << 5) | 0x0E,
         (uint8_t *)&torque,
         8);
+}
+
+// Set cart force, in N
+void Motor::setForce(float force)
+{
+    float tr = force * this->wheel_diameter / 2;
+    float tm = tr / this->kg;
+
+    this->setTorque(tm);
+}
+
+// Sets motor offset to current position
+void Motor::setOffset()
+{
+    this->fetchEncoderEstimates();
+
+    this->position_offset = this->position;
 }
 
 float Motor::getPosition()

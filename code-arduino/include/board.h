@@ -14,6 +14,8 @@
 
 #define INTERRUPT_PIN 4
 
+#define IS_ARDUINO false
+
 #elif defined(BOARD_MEGA)
 // Includes
 #include <Servo.h>
@@ -29,6 +31,8 @@
 #define MCP2515_CS_PIN 47 // CAN module chip select pin
 
 #define INTERRUPT_PIN 21
+
+#define IS_ARDUINO true
 
 #else
 // Throws a compilation error if neither board is selected
