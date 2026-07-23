@@ -1,6 +1,7 @@
 #ifndef COMM_JSON_H
 #define COMM_JSON_H
 #include <Arduino.h>
+#include "states.h"
 
 class CommJSON
 {
@@ -22,7 +23,7 @@ public:
         double angularSpeed = 0.0;
         double accelerationX = 0.0;
         bool slipDetected = false;
-        String state = "IDLE";
+        States state = States::Idle;
         double targetPosition = 0.0;
     };
 
@@ -51,39 +52,6 @@ private:
 
     bool parseMessage(const String &message);
     void sendError(const char *message);
-
-    // // variables de commande reçues du Raspberry Pi
-    // String commandeRecue = "AUCUNE";
-    // double positionCible = 0.0;
-    // bool demarrageDemande = false;
-    // bool arretDemande = false;
-
-    // // variables d'etat du robot
-    // // pour l'instant c'est des valeurs de test
-    // // elles seront remplacees par les vraies valeurs calculees : IMU, encodeurs, vitesse, position, glissement,
-    // double positionRobot = 0.0;
-    // double vitesseRobot = 0.0;
-    // double anglePendule = 0.0;
-    // double accelerationX = 0.0;
-    // bool glissementDetecte = false;
-    // String etatRobot = "IDLE";
 };
-
-// // variables de commande reçues du Raspberry Pi
-// // elles peuvent etre utilisees ailleurs dans le programme Arduino
-// extern String commandeRecue;
-// extern double positionCible;
-// extern bool demarrageDemande;
-// extern bool arretDemande;
-
-// // initialise la communication serie entre l'Arduino et le Raspberry Pi
-// // on utilise le port USB serie avec une vitesse de 115200 bauds
-// void initialiserCommunicationJson();
-
-// // lit une commande JSON reçue du Raspberry Pi
-// void lireCommandeDuRaspberry();
-
-// // Envoie l'etat actuel du robot au Raspberry Pi sous forme JSON
-// void envoyerEtatAuRaspberry();
 
 #endif // COMM_JSON_H

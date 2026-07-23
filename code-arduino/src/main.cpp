@@ -16,11 +16,12 @@
 #include "board.h"
 #include "magnet.h"
 #include "motor.h"
+#include "states.h"
 
 //-----------------------------------------
 //                 Defines
 //-----------------------------------------
-#define DEBUG // Commenter pour retirer le mode debug
+// #define DEBUG // Commenter pour retirer le mode debug
 
 #ifdef DEBUG // Crée des macros pour faire rapidement disparaitre les prints de débug
 #define DEBUG_PRINT(x) Serial.print(x)
@@ -33,13 +34,14 @@
 //-----------------------------------------
 //               Constantes
 //-----------------------------------------
-const unsigned long periodeEnvoi = 1000; // 100 ms = 10 Hz
+const unsigned long DELAI_ENVOI = 1000; // 100 ms = 10 Hz
+const float LQR_MOVE[4] = {0, 0, 0, 0};
+const float LQR_STAB[4] = {0, 0, 0, 0};
 
 //-----------------------------------------
 //                Objects
 //-----------------------------------------
-// CS pin 9, SPI speed default from library header (can pass a custom speed)
-AS5047P as5047p(AS5047P_CS_PIN);
+PendulumEncoder encoPendule(46); // CS pin 9, SPI speed default from library header (can pass a custom speed)
 CommJSON communication(Serial);
 Motor motor = Motor();
 
@@ -48,8 +50,13 @@ Motor motor = Motor();
 //-----------------------------------------
 unsigned long dernierEnvoi = 0;
 unsigned long startTime = 0;
+
+unsigned long timerEnvoi = 0;
+unsigned long lastMeasureTime = millis();
+double lastAngle = 0;
+
 double targetPosition = 0.0;
-String robotState = "IDLE";
+States robotState = States::Idle;
 
 //-----------------------------------------
 //              Main Program
@@ -61,13 +68,31 @@ void setup()
   delay(1000); // Attent un peu pour le start du sérial port
 
   // Init encoder AS50407
-  DEBUG_PRINT("> Init AS5047P ");
-  // while (!as5047p.initSPI())
-  // {
-  //   DEBUG_PRINT(".");
-  //   delay(500);
-  // }
-  DEBUG_PRINTLN("> AS5047P sensor successfully initialized.");
+  DEBUG_PRINTLN("> Init encoPendule ");
+  while (!encoPendule.init())
+  {
+    DEBUG_PRINTLN("! Failed, retrying...");
+    delay(500);
+  }
+  DEBUG_PRINTLN("> encoPendule sensor successfully initialized.");
+
+  // Zeroing angle pendule
+  DEBUG_PRINTLN("> Initial angle:");
+  DEBUG_PRINTLN(encoPendule.readAngle());
+
+  if (encoPendule.setZero())
+  {
+    DEBUG_PRINTLN("> Zero successfully configured.");
+  }
+  else
+  {
+    DEBUG_PRINTLN("! Failed to configure zero.");
+  }
+
+  delay(10);
+
+  DEBUG_PRINTLN("> Angle after zero:");
+  DEBUG_PRINTLN(encoPendule.readAngle());
 
   DEBUG_PRINTLN("> Init Communication Raspberry ");
   communication.init();
@@ -89,6 +114,9 @@ void setup()
   delay(5000);
 
   startTime = millis();
+  // Init pour les mesures
+  lastAngle = encoPendule.readAngle();
+  lastMeasureTime = millis();
 }
 
 void loop()
@@ -101,16 +129,16 @@ void loop()
     switch (command)
     {
     case CommJSON::Command::Start:
-      robotState = "MOVE";
+      robotState = States::Swing;
       break;
 
     case CommJSON::Command::Stop:
-      robotState = "IDLE";
+      robotState = States::Idle;
       break;
 
     case CommJSON::Command::SetTarget:
       targetPosition = communication.getTargetPosition();
-      robotState = "MOVE_TO_TARGET";
+      robotState = States::Stabilize;
       break;
 
     case CommJSON::Command::None:
@@ -119,18 +147,50 @@ void loop()
     }
   }
 
-  if (millis() - dernierEnvoi >= periodeEnvoi)
+  // Prise des mesures
+  unsigned long currentTime = millis();
+  float dt = (currentTime - lastMeasureTime) / 1000.0; // En sec
+  double position = 0;                                 // TODO
+  double speed = 0;
+  double angle = encoPendule.readAngle();
+  double angularSpeed = (angle - lastAngle) / dt;
+  double accelerationX = 0;
+
+  lastMeasureTime = currentTime;
+  lastAngle = angle;
+
+  // Calcul de la commande moteur
+  switch (robotState)
+  {
+  case States::MoveToX:
+    // TODO
+    break;
+
+  case States::Stabilize:
+    // TODO
+    break;
+
+  case States::Swing:
+    // TODO
+    break;
+
+  case States::Idle:
+    break;
+  }
+
+  // Envoie de l'état robot au raspberry
+  if (millis() - timerEnvoi >= DELAI_ENVOI)
   {
     DEBUG_PRINT("Send state : ");
-    dernierEnvoi = millis();
+    timerEnvoi = millis();
 
     CommJSON::RobotState state;
 
-    state.position = 10.5; // TODO : Prendre les actual mesures
-    state.speed = 1.2;
-    state.angle = 0.15;
-    state.angularSpeed = 0.02;
-    state.accelerationX = 0.4;
+    state.position = position; // TODO : Prendre les actual mesures
+    state.speed = speed;
+    state.angle = angle;
+    state.angularSpeed = angularSpeed;
+    state.accelerationX = accelerationX;
     state.slipDetected = false;
     state.state = robotState;
     state.targetPosition = targetPosition;

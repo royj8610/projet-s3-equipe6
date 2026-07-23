@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "communication_json.h"
+#include "states.h"
 
 //-----------------------------------------
 //             Constructeurs
@@ -53,45 +54,6 @@ bool CommJSON::read()
     }
 
     return parseMessage(message);
-
-    // StaticJsonDocument<256> documentJson;
-
-    // // on fait la conversion du texte reçu en objet JSON
-    // DeserializationError erreur = deserializeJson(documentJson, messageRecu);
-    // if (erreur)
-    // {
-    //     _serial.println("{\"error\":\"JSON invalide\"}");
-    //     return false;
-    // }
-    // const char *commande = documentJson["cmd"];
-    // if (commande == nullptr)
-    // {
-    //     _serial.println("{\"error\":\"Commande absente\"}");
-    //     return false;
-    // }
-    // commandeRecue = String(commande);
-
-    // // commande START : le Raspberry demande a l'Arduino de demarrer
-    // if (commandeRecue == "START")
-    // {
-    //     demarrageDemande = true;
-    //     arretDemande = false;
-    //     etatRobot = "MOVE";
-    // }
-
-    // // commande STOP : le Raspberry demande a l'Arduino d'arreter
-    // else if (commandeRecue == "STOP")
-    // {
-    //     arretDemande = true;
-    //     demarrageDemande = false;
-    //     etatRobot = "IDLE";
-    // }
-    // // commande SET_TARGET : le Raspberry envoie une position cible
-    // else if (commandeRecue == "SET_TARGET")
-    // {
-    //     positionCible = documentJson["x_target"];
-    //     etatRobot = "MOVE_TO_TARGET";
-    // }
 }
 
 /**
@@ -139,7 +101,7 @@ bool CommJSON::sendState(const RobotState &state)
     documentJson["angle"] = state.angle;
     documentJson["angular_speed"] = state.angularSpeed;
     documentJson["ax"] = state.accelerationX;
-    documentJson["state"] = state.state;
+    documentJson["state"] = stateToString(state.state);
     documentJson["slip"] = state.slipDetected;
     documentJson["target"] = state.targetPosition;
 
@@ -226,106 +188,3 @@ void CommJSON::sendError(const char *message)
     serializeJson(documentJson, _serial);
     _serial.println();
 }
-
-/**
- * @brief Envoie l'état du robot à l'autre appareil
- */
-// bool CommJSON::setState(
-//     double position,
-//     double speed,
-//     double angle,
-//     double angSpeed,
-//     String robotState)
-// {
-//     StaticJsonDocument<256> documentJson;
-
-//     // L'Arduino fait les calculs et envoie seulement les resultats utiles au Pi
-//     documentJson["time"] = millis();
-//     documentJson["x"] = position;
-//     documentJson["v"] = speed;
-//     documentJson["angle"] = angle;
-//     documentJson["ax"] = accelerationX;
-//     documentJson["state"] = robotState;
-//     documentJson["slip"] = glissementDetecte;
-//     documentJson["target"] = positionCible;
-
-//     // serializeJson ecrit directement le JSON sur le port serie
-//     serializeJson(documentJson, _serial);
-
-//     // ee retour a la ligne est important :
-//     // il permet au Raspberry Pi de lire les messages ligne par ligne
-//     _serial.println();
-
-//     return true; // Is comm success?
-// }
-
-// void initialiserCommunicationJson() {
-
-//    Serial.begin(115200);
-
-//    // sans ce delai, le Raspberry Pi peut parfois manquer le premier message
-//    delay(1000);
-//    Serial.println("{\"status\":\"Arduino ready\"}");
-// }
-
-// void lireCommandeDuRaspberry() {
-
-//    if (Serial.available() > 0) {
-//        String messageRecu = Serial.readStringUntil('\n');
-
-//        StaticJsonDocument<256> documentJson;
-
-//        // on fait la conversion du texte reçu en objet JSON
-//        DeserializationError erreur = deserializeJson(documentJson, messageRecu);
-//        if (erreur) {
-//            Serial.println("{\"error\":\"JSON invalide\"}");
-//            return;
-//        }
-//        const char* commande = documentJson["cmd"];
-//        if (commande == nullptr) {
-//            Serial.println("{\"error\":\"Commande absente\"}");
-//            return;
-//        }
-//        commandeRecue = String(commande);
-
-//        // commande START : le Raspberry demande a l'Arduino de demarrer
-//        if (commandeRecue == "START") {
-//            demarrageDemande = true;
-//            arretDemande = false;
-//            etatRobot = "MOVE";
-//        }
-
-//        // commande STOP : le Raspberry demande a l'Arduino d'arreter
-//        else if (commandeRecue == "STOP") {
-//            arretDemande = true;
-//            demarrageDemande = false;
-//            etatRobot = "IDLE";
-//        }
-//        // commande SET_TARGET : le Raspberry envoie une position cible
-//        else if (commandeRecue == "SET_TARGET") {
-//            positionCible = documentJson["x_target"];
-//            etatRobot = "MOVE_TO_TARGET";
-//        }
-//    }
-// }
-
-// void envoyerEtatAuRaspberry() {
-//    StaticJsonDocument<256> documentJson;
-
-//    // L'Arduino fait les calculs et envoie seulement les resultats utiles au Pi
-//    documentJson["time"] = millis();
-//    documentJson["x"] = positionRobot;
-//    documentJson["v"] = vitesseRobot;
-//    documentJson["angle"] = anglePendule;
-//    documentJson["ax"] = accelerationX;
-//    documentJson["state"] = etatRobot;
-//    documentJson["slip"] = glissementDetecte;
-//    documentJson["target"] = positionCible;
-
-//    // serializeJson ecrit directement le JSON sur le port serie
-//    serializeJson(documentJson, Serial);
-
-//    // ee retour a la ligne est important :
-//    // il permet au Raspberry Pi de lire les messages ligne par ligne
-//    Serial.println();
-// }
