@@ -34,11 +34,11 @@ double PendulumEncoder::readAngle()
     }
 }
 
-double PendulumEncoder::readRelativeAngle()
+double PendulumEncoder::readAngleRad()
 {
     // Une fois ZPOS configuré, le capteur retourne déjà
     // une position relative au zéro matériel.
-    return readAngle();
+    return radians(readAngle());
 }
 
 bool PendulumEncoder::setZero()
