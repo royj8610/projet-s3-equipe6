@@ -10,7 +10,6 @@
 //-----------------------------------------
 #include <Arduino.h>
 #include <AS5047P.h>
-#include <cmath>
 #include "encoder.h"
 #include "communication_json.h"
 #include "board.h"
@@ -21,7 +20,7 @@
 //-----------------------------------------
 //                 Defines
 //-----------------------------------------
-// #define DEBUG // Commenter pour retirer le mode debug
+#define DEBUG // Commenter pour retirer le mode debug
 
 #ifdef DEBUG // Crée des macros pour faire rapidement disparaitre les prints de débug
 #define DEBUG_PRINT(x) Serial.print(x)
@@ -45,7 +44,7 @@ const float LQR_STAB[4] = {44.72135955, 24.48511986, -54.18831837, -5.26798942};
 //-----------------------------------------
 PendulumEncoder encoPendule(46); // CS pin 9, SPI speed default from library header (can pass a custom speed)
 CommJSON communication(Serial);
-Motor motor = Motor(IS_ARDUINO);
+Motor motor = Motor();
 
 //-----------------------------------------
 //                Variables
@@ -56,6 +55,8 @@ unsigned long startTime = 0;
 unsigned long timerEnvoi = 0;
 unsigned long lastMeasureTime = millis();
 double lastAngle = 0;
+
+float targetAngle = 0;
 
 double targetPosition = 0.0;
 States robotState = States::Idle;
@@ -111,14 +112,22 @@ void setup()
   motor.init();
 
   motor.setControllerMode(ControlMode::TORQUE, InputMode::PASSTHROUGH);
-  motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
+  motor.setAxisState(AxisState::IDLE);
 
-  delay(5000);
+  Serial.print("Set robot to starting position...");
+  while (Serial.available() == 0)
+  {
+    // Do nothing, just wait
+  }
+  motor.setOffset();
+  motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
 
   startTime = millis();
   // Init pour les mesures
   lastAngle = encoPendule.readAngle();
   lastMeasureTime = millis();
+
+  targetAngle = encoPendule.readAngle();
 }
 
 //-----------------------------------------
@@ -155,8 +164,18 @@ void loop()
   // Prise des mesures
   unsigned long currentTime = millis();
   float dt = (currentTime - lastMeasureTime) / 1000.0; // En sec
-  double position = 0;                                 // TODO
-  double speed = 0;
+
+  if (motor.fetchEncoderEstimates())
+  {
+    // Serial.println("Connection to motor OK");
+  }
+  else
+  {
+    Serial.println("Can't establish connection");
+  }
+
+  double position = motor.getPosition(); // TODO
+  double speed = motor.getVelocity();
   double angle = encoPendule.readAngle();
   double angularSpeed = (angle - lastAngle) / dt;
   double accelerationX = 0;
@@ -164,27 +183,46 @@ void loop()
   lastMeasureTime = currentTime;
   lastAngle = angle;
 
+  if (currentTime - startTime < 15000)
+  {
+    robotState = States::Stabilize;
+  }
+  else
+  {
+    robotState = States::Idle;
+  }
+
   // Calcul de la commande moteur
-  float goal[4] = {position - targetPosition, speed, sin(radians(angle)), angularSpeed};
+  float goal[4] = {position - targetPosition, speed, sin(radians(angle - targetAngle)), radians(angularSpeed)};
   switch (robotState)
   {
   case States::MoveToX:
+  {
     float u = LQR_MOVE[0] * goal[0] + LQR_MOVE[1] * goal[1] + LQR_MOVE[2] * goal[2] + LQR_MOVE[3] * goal[3];
     // TODO : Torque de u
     break;
+  }
 
   case States::Stabilize:
+  {
     float u = LQR_STAB[0] * goal[0] + LQR_STAB[1] * goal[1] + LQR_STAB[2] * goal[2] + LQR_STAB[3] * goal[3];
-    // TODO : Torque de u
+
+    motor.setForce(-u);
+
     break;
+  }
 
   case States::Swing:
+  {
     // TODO : Torque fixe (10 selon simu)
     break;
+  }
 
   case States::Idle:
-    // TODO : Arret moteur
+  {
+    motor.setAxisState(AxisState::IDLE);
     break;
+  }
   }
 
   // Envoie de l'état robot au raspberry
@@ -207,7 +245,7 @@ void loop()
     bool msgSent = communication.sendState(state);
   }
 
-  delay(50);
+  // delay(50);
 
   // DEBUG_PRINTLN(as5047p.readAngleDegree(true));
 }

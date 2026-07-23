@@ -34,13 +34,14 @@ private:
     SPIClass &spi = SPI;
 
     float wheel_diameter = 0.05;
-    float kg = 60.0 / 32.0;
+    float kg = -60.0 / 32.0;
     float position_offset = 0.0;
+    float max_torque = 0.1;
 
     float pos_factor;
 
-    float position = 0;
-    float velocity = 0;
+    float position = 0; // Absolute position of the motor, in turns
+    float velocity = 0; // Absolute velocity of the motor, in turns/s
 
     float voltage = 0;
     float current = 0;
@@ -49,7 +50,7 @@ private:
     void setTorque(float torque);
 
 public:
-    Motor(bool invert_direction);
+    Motor();
 
     void setControllerMode(uint32_t control_mode, uint32_t input_mode);
     void setAxisState(uint32_t axis_state);

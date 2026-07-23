@@ -1,14 +1,9 @@
 #include "motor.h"
 
-Motor::Motor(bool invert_direction)
+Motor::Motor()
     : spi(SPI),
       mcp2515(MCP2515_CS_PIN)
 {
-    if (invert_direction)
-    {
-        this->kg *= -1.0;
-    }
-
     pos_factor = (3.141593 * this->wheel_diameter) / this->kg;
 }
 
@@ -181,6 +176,17 @@ void Motor::setVelocity(float vel)
 // Set motor torque, in N.m
 void Motor::setTorque(float torque)
 {
+    float limited_torque = torque;
+
+    if (torque < -this->max_torque)
+    {
+        limited_torque = -this->max_torque;
+    }
+    else if (torque > this->max_torque)
+    {
+        limited_torque = this->max_torque;
+    }
+
     sendCAN(
         (NODE_ID << 5) | 0x0E,
         (uint8_t *)&torque,
@@ -206,12 +212,12 @@ void Motor::setOffset()
 
 float Motor::getPosition()
 {
-    return position;
+    return (this->position - this->position_offset) * this->pos_factor;
 }
 
 float Motor::getVelocity()
 {
-    return velocity;
+    return velocity * this->pos_factor;
 }
 
 float Motor::getElectricalPower()
