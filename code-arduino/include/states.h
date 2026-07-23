@@ -7,6 +7,7 @@ enum class States
     Swing,
     MoveToX,
     Stabilize,
+    Drop,
 
 };
 
@@ -26,9 +27,14 @@ inline const char *stateToString(States state)
     case States::Stabilize:
         return "STABILIZE";
 
+    case States::Drop:
+        return "DROP";
+
     default:
         return "UNKNOWN";
     }
 }
 
 #endif
+
+// QString jsonValue = mainWindow->receiver()->temperature();

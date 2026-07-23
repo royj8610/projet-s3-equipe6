@@ -12,7 +12,7 @@ public:
     bool init();
 
     double readAngle();
-    double readRelativeAngle();
+    double readAngleRad();
 
     bool setZero();
     bool resetZero();
