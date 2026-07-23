@@ -1,10 +1,9 @@
 #include "motor.h"
 
 Motor::Motor(bool invert_direction)
+    : spi(SPI),
+      mcp2515(MCP2515_CS_PIN)
 {
-    mcp2515 = MCP2515(MCP2515_CS_PIN);
-    spi = SPIClass(VSPI);
-
     if (invert_direction)
     {
         this->kg *= -1.0;
@@ -145,8 +144,8 @@ void Motor::setPosition(float pos)
     struct
     {
         float pos;
-        float vel_ff;
-        float torque_ff;
+        int16_t vel_ff;
+        int16_t torque_ff;
 
     } msg;
 
@@ -222,7 +221,19 @@ float Motor::getElectricalPower()
 
 void Motor::init()
 {
-    spi.begin(SPI_SCK, SPI_MISO, SPI_MOSI, MCP2515_CS_PIN);
+#if defined(BOARD_ESP32)
+    spi.begin(
+        SPI_SCK,
+        SPI_MISO,
+        SPI_MOSI,
+        MCP2515_CS_PIN);
+
+#elif defined(BOARD_MEGA)
+    pinMode(53, OUTPUT);
+    digitalWrite(53, HIGH);
+
+    spi.begin();
+#endif
 
     mcp2515.reset();
 

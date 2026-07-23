@@ -31,7 +31,7 @@ class Motor
 {
 private:
     MCP2515 mcp2515 = MCP2515(MCP2515_CS_PIN);
-    SPIClass spi = SPIClass(VSPI);
+    SPIClass &spi = SPI;
 
     float wheel_diameter = 0.05;
     float kg = 60.0 / 32.0;

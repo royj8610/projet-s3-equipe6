@@ -35,8 +35,10 @@
 //               Constantes
 //-----------------------------------------
 const unsigned long DELAI_ENVOI = 1000; // 100 ms = 10 Hz
-const float LQR_MOVE[4] = {0, 0, 0, 0};
-const float LQR_STAB[4] = {0, 0, 0, 0};
+// k_stab: [[ 44.72135955  24.48511986 -54.18831837  -5.26798942]]
+// k_goto: [[31.6227766   8.40881948  1.06721826  0.26126971]]
+const float LQR_MOVE[4] = {31.6227766, 8.40881948, 1.06721826, 0.26126971};
+const float LQR_STAB[4] = {44.72135955, 24.48511986, -54.18831837, -5.26798942};
 
 //-----------------------------------------
 //                Objects
@@ -59,7 +61,7 @@ double targetPosition = 0.0;
 States robotState = States::Idle;
 
 //-----------------------------------------
-//              Main Program
+//                  Setup
 //-----------------------------------------
 void setup()
 {
@@ -119,6 +121,9 @@ void setup()
   lastMeasureTime = millis();
 }
 
+//-----------------------------------------
+//                  Loop
+//-----------------------------------------
 void loop()
 {
   // Lecture de la commande recu depuis le raspbrry
@@ -160,21 +165,25 @@ void loop()
   lastAngle = angle;
 
   // Calcul de la commande moteur
+  float goal[4] = {position - targetPosition, speed, sin(radians(angle)), angularSpeed};
   switch (robotState)
   {
   case States::MoveToX:
-    // TODO
+    float u = LQR_MOVE[0] * goal[0] + LQR_MOVE[1] * goal[1] + LQR_MOVE[2] * goal[2] + LQR_MOVE[3] * goal[3];
+    // TODO : Torque de u
     break;
 
   case States::Stabilize:
-    // TODO
+    float u = LQR_STAB[0] * goal[0] + LQR_STAB[1] * goal[1] + LQR_STAB[2] * goal[2] + LQR_STAB[3] * goal[3];
+    // TODO : Torque de u
     break;
 
   case States::Swing:
-    // TODO
+    // TODO : Torque fixe (10 selon simu)
     break;
 
   case States::Idle:
+    // TODO : Arret moteur
     break;
   }
 
@@ -186,7 +195,7 @@ void loop()
 
     CommJSON::RobotState state;
 
-    state.position = position; // TODO : Prendre les actual mesures
+    state.position = position;
     state.speed = speed;
     state.angle = angle;
     state.angularSpeed = angularSpeed;
