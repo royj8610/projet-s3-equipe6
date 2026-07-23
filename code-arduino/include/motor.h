@@ -38,6 +38,9 @@ private:
     float position = 0;
     float velocity = 0;
 
+    float voltage = 0;
+    float current = 0;
+
     void sendCAN(uint32_t id, uint8_t *data, uint8_t len);
 
 public:
@@ -50,8 +53,11 @@ public:
     void setTorque(float torque);
 
     bool fetchEncoderEstimates(uint32_t timeout_ms = 50);
+    bool fetchVoltageCurrent(uint32_t timeout_ms = 50);
     float getPosition();
     float getVelocity();
+
+    float getElectricalPower();
 
     void init();
 };

@@ -61,6 +61,49 @@ bool Motor::fetchEncoderEstimates(uint32_t timeout_ms)
     return false;
 }
 
+bool Motor::fetchVoltageCurrent(uint32_t timeout_ms)
+{
+    // Send RTR request
+    struct can_frame request;
+
+    request.can_id = (NODE_ID << 5) | 0x17 | CAN_RTR_FLAG;
+    request.can_dlc = 0;
+
+    if (mcp2515.sendMessage(&request) != MCP2515::ERROR_OK)
+    {
+        return false;
+    }
+
+    // Wait for response
+    uint32_t start = millis();
+
+    struct can_frame response;
+
+    while (millis() - start < timeout_ms)
+    {
+        if (mcp2515.readMessage(&response) == MCP2515::ERROR_OK)
+        {
+            uint32_t expected_id = (NODE_ID << 5) | 0x17;
+
+            if (response.can_id == expected_id &&
+                response.can_dlc == 8)
+            {
+                memcpy(&voltage,
+                       response.data,
+                       sizeof(float));
+
+                memcpy(&current,
+                       response.data + 4,
+                       sizeof(float));
+
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 void Motor::setControllerMode(uint32_t control_mode, uint32_t input_mode)
 {
     struct
@@ -143,6 +186,11 @@ float Motor::getPosition()
 float Motor::getVelocity()
 {
     return velocity;
+}
+
+float Motor::getElectricalPower()
+{
+    return current;
 }
 
 void Motor::init()
