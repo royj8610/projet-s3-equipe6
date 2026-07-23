@@ -45,6 +45,7 @@ private slots:
     void resetButtonClicked(); //changé
     void startButtonClicked(); //changé
     void stopButtonClicked(); //changé
+    void stateMachine();
 
     void startSerialCom(QString);
 

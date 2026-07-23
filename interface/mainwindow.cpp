@@ -3,6 +3,10 @@
 
 #define ON_DURATION 2
 
+double longueur_pondule = 0.0;
+double obstacle = 0.0;
+
+
 MainWindow::MainWindow(int updateRate, QWidget *parent):
     QMainWindow(parent)
 {
@@ -75,43 +79,27 @@ void MainWindow::receiveFromSerial(QString msg){
             //QString mess = jsonResponse.toJson(QJsonDocument::Indented);
             //ui->textBrowser->setText(mess.mid(2,buff.length()-4));
 
-            if(jsonObj.contains("positionA")) {
+            if(jsonObj.contains("type") && jsonObj["type"] == "robot_state") {
+
                 double time = jsonObj["time"].toDouble();
-                double positionA = jsonObj["positionA"].toDouble();
-                seriesApos_.append(time, positionA);
+                double position = jsonObj["x"].toDouble();
+
+                seriesApos_.append(time, position);
                 chartA_.removeSeries(&seriesApos_);
                 chartA_.addSeries(&seriesApos_);
                 chartA_.createDefaultAxes();
                 ui->totalTimeLabel->setText("Time: " + QString::number(time) + " sec");
 
-            }
-            if(jsonObj.contains("angleA")) {
-                double time = jsonObj["time"].toDouble();
-                double angleA = jsonObj["angleA"].toDouble();
-                seriesAangle_.append(time, angleA);
+                QString state = jsonObj["state"];
+                ui->stateLabelA->setText("State: " + state);
+
+
+                double angle = jsonObj["angle"].toDouble();
+                seriesAangle_.append(time, angle);
                 chartA_.removeSeries(&seriesAangle_);
                 chartA_.addSeries(&seriesAangle_);
                 chartA_.createDefaultAxes();
 
-            }
-
-            if(jsonObj.contains("positionB")) {
-                double time = jsonObj["time"].toDouble();
-                double positionB = jsonObj["positionB"].toDouble();
-                seriesBpos_.append(time, positionB);
-                chartB_.removeSeries(&seriesBpos_);
-                chartB_.addSeries(&seriesBpos_);
-                chartB_.createDefaultAxes();
-
-            }
-
-            if(jsonObj.contains("angleB")) {
-                double time = jsonObj["time"].toDouble();
-                double angleB = jsonObj["angleB"].toDouble();
-                seriesBangle_.append(time, angleB);
-                chartB_.removeSeries(&seriesBangle_);
-                chartB_.addSeries(&seriesBangle_);
-                chartB_.createDefaultAxes();
 
             }
 
@@ -151,7 +139,7 @@ void MainWindow::resetButtonClicked() {
     // modifié
     qDebug().noquote() <<"Bouton reset";
     QJsonObject jsonObject{
-        {"reset", 1}
+        {"cmd", RESET}
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
@@ -162,7 +150,7 @@ void MainWindow::startButtonClicked() {
     // modifié
     qDebug().noquote() <<"Bouton start";
     QJsonObject jsonObject{
-        {"start", 1}
+        {"cmd", START}
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
@@ -174,34 +162,50 @@ void MainWindow::stopButtonClicked() {
     qDebug().noquote() <<"Bouton stop";
     QJsonObject jsonObject
     {
-        {"stop", 1}
+        {"cmd", STOP}
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
     sendMessage(strJson);   // Envoi du message
 }
 
+void MainWindow::stateMachine(){
+    double x_target = 0.0;
+    if(receiveFromSerial.state == Idle){
+        x_target =  0.0;
 
-//void MainWindow::onMsgButtonClicked() {
-    // Commenter au besoin
-    //qDebug().noquote() <<"Bouton message";
+    }
 
-    /*
-     * Étape 6. Créer un objet QJsonObject contenant la paire: "usrMsg" et le texte de msgEditor.
-     * Décommenter le reste des lignes de la fonction ensuite. Ces lignes se chargent de formater
-     * le message et de le transmettre par le port série.
-    */
-    // TODO...
+    if(longueur_pondule && obstacle){
+        next_state = MoveToX;
+        x_target = 120.0;
+        next_state = Stabilize;
+    }
 
-    // Formatage en document JSON
-    // QJsonDocument doc(jsonObject);
+    if(receiveFromSerial.state == Stabilize){
+        next_state = Drop;
+        next_state = Idle;
+    }
 
-    // Casting en type QString
-    // QString strJson(doc.toJson(QJsonDocument::Compact));
 
-    // Envoi du message
-    // sendMessage(strJson);
-//}
+
+
+
+    QJsonObject jsonObject
+    {
+        {"cmd", next_state},
+        {"x_target", target}
+    };
+
+    QJsonDocument doc(jsonObject); // Formatage en document JSON
+    QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    sendMessage(strJson);
+
+
+
+
+
+}
 
 void MainWindow::connectComboBox(){
     // Fonction de connection des entrees deroulantes
