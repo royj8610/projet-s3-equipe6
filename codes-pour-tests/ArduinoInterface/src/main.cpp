@@ -27,6 +27,7 @@ int positionA_ = 0;
 int angleA_ = 0;
 int positionB_ = 0;
 int angleB_ = 0;
+int treeNum_ = 0;
 
 
 /*------------------------- Prototypes de fonctions -------------------------*/
@@ -66,7 +67,7 @@ void loop() {
     angleA_ = random(360);
     positionB_ = random(1000); 
     angleB_ = random(360);
-    delay(100);
+    delay(1000);
     }
   else if (workState_ == 0)
   {
@@ -75,6 +76,7 @@ void loop() {
     positionB_ = 0; 
     angleB_ = 0;
   }
+  
   
 
   // mise a jour des chronometres
@@ -94,12 +96,13 @@ void sendMsg(){
   StaticJsonDocument<500> doc;
   
   // Elements du message
-  doc["time"] = millis();
+  doc["time"] = millis()/1000;
   doc["positionA"] = positionA_;
   doc["angleA"] = angleA_;
 
   doc["positionB"] = positionB_;
   doc["angleB"] = angleB_;
+  doc["treeNum"] = treeNum_;
 
   doc["state"] = workState_;
 
