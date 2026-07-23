@@ -177,6 +177,7 @@ void Motor::setVelocity(float vel)
 void Motor::setTorque(float torque)
 {
     float limited_torque = torque;
+    const float torque_threshold = 0.05;
 
     if (torque < -this->max_torque)
     {
@@ -186,10 +187,14 @@ void Motor::setTorque(float torque)
     {
         limited_torque = this->max_torque;
     }
+    else if (torque < torque_threshold && torque > -torque_threshold)
+    {
+        limited_torque = 0.0;
+    }
 
     sendCAN(
         (NODE_ID << 5) | 0x0E,
-        (uint8_t *)&torque,
+        (uint8_t *)&limited_torque,
         8);
 }
 

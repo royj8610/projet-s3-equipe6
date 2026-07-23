@@ -120,14 +120,15 @@ void setup()
     // Do nothing, just wait
   }
   motor.setOffset();
+  motor.setForce(0.0);
   motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
 
   startTime = millis();
   // Init pour les mesures
-  lastAngle = encoPendule.readAngle();
+  lastAngle = encoPendule.readAngleRad();
   lastMeasureTime = millis();
 
-  targetAngle = encoPendule.readAngle();
+  targetAngle = encoPendule.readAngleRad();
 }
 
 //-----------------------------------------
@@ -174,32 +175,25 @@ void loop()
     Serial.println("Can't establish connection");
   }
 
-  double position = motor.getPosition(); // TODO
+  double position = motor.getPosition();
   double speed = motor.getVelocity();
-  double angle = encoPendule.readAngle();
+  double angle = encoPendule.readAngleRad();
   double angularSpeed = (angle - lastAngle) / dt;
   double accelerationX = 0;
 
   lastMeasureTime = currentTime;
   lastAngle = angle;
 
-  if (currentTime - startTime < 15000)
-  {
-    robotState = States::Stabilize;
-  }
-  else
-  {
-    robotState = States::Idle;
-  }
-
   // Calcul de la commande moteur
-  float goal[4] = {position - targetPosition, speed, sin(radians(angle - targetAngle)), radians(angularSpeed)};
+  float goal[4] = {position - targetPosition, speed, sin(angle - targetAngle), angularSpeed};
   switch (robotState)
   {
   case States::MoveToX:
   {
     float u = LQR_MOVE[0] * goal[0] + LQR_MOVE[1] * goal[1] + LQR_MOVE[2] * goal[2] + LQR_MOVE[3] * goal[3];
-    // TODO : Torque de u
+
+    motor.setForce(-u);
+
     break;
   }
 
