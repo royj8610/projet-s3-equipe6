@@ -31,27 +31,40 @@ class Motor
 {
 private:
     MCP2515 mcp2515 = MCP2515(MCP2515_CS_PIN);
-    SPIClass spi = SPIClass(VSPI);
+    SPIClass &spi = SPI;
 
-    const float position_offset = 0;
+    float wheel_diameter = 0.05;
+    float kg = 60.0 / 32.0;
+    float position_offset = 0.0;
+
+    float pos_factor;
 
     float position = 0;
     float velocity = 0;
 
+    float voltage = 0;
+    float current = 0;
+
     void sendCAN(uint32_t id, uint8_t *data, uint8_t len);
+    void setTorque(float torque);
 
 public:
-    Motor();
+    Motor(bool invert_direction);
 
     void setControllerMode(uint32_t control_mode, uint32_t input_mode);
     void setAxisState(uint32_t axis_state);
     void setPosition(float pos);
     void setVelocity(float vel);
-    void setTorque(float torque);
+    void setForce(float force);
+
+    void setOffset();
 
     bool fetchEncoderEstimates(uint32_t timeout_ms = 50);
+    bool fetchVoltageCurrent(uint32_t timeout_ms = 50);
     float getPosition();
     float getVelocity();
+
+    float getElectricalPower();
 
     void init();
 };
