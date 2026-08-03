@@ -47,10 +47,10 @@ unsigned long timerEnvoi = 0;
 double targetPosition = 0.0;
 States robotState = States::Idle;
 float angleSimule = 0.0;
-float positionSimule = 90.0;
+float positionSimule = 0.0;
 
-float angleCible = 0;
-float positionCible = 0;
+float angleCible = 0.4;
+float positionCible = 0.5;
 
 //-----------------------------------------
 //              Fonctions
