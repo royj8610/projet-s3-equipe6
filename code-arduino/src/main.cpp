@@ -303,6 +303,7 @@ void loop()
     state.slipDetected = false;
     state.state = robotState;
     state.targetPosition = targetPosition;
+    state.power = 0; // TODO : Actual Valeur
 
     bool msgSent = communication.sendState(state);
   }

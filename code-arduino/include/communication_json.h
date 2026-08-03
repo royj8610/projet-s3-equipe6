@@ -25,6 +25,7 @@ public:
         bool slipDetected = false;
         States state = States::Idle;
         double targetPosition = 0.0;
+        double power = 0.0;
     };
 
     // Constructeur

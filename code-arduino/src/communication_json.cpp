@@ -96,14 +96,15 @@ bool CommJSON::sendState(const RobotState &state)
 
     documentJson["type"] = "robot_state";
     documentJson["time"] = millis();
-    documentJson["x"] = state.position;
-    documentJson["v"] = state.speed;
+    documentJson["position"] = state.position;
+    documentJson["speed"] = state.speed;
     documentJson["angle"] = state.angle;
     documentJson["angular_speed"] = state.angularSpeed;
-    documentJson["ax"] = state.accelerationX;
+    // documentJson["accel_x"] = state.accelerationX;
     documentJson["state"] = stateToString(state.state);
-    documentJson["slip"] = state.slipDetected;
+    // documentJson["slip"] = state.slipDetected;
     documentJson["target"] = state.targetPosition;
+    documentJson["power"] = state.power;
 
     const size_t bytesWritten = serializeJson(documentJson, _serial);
 
