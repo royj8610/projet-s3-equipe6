@@ -3,10 +3,9 @@
 
 #define ON_DURATION 2
 
-double longueur_pondule = 0.0;
-double obstacle = 0.0;
-
-
+//-------------------------------------------
+// Constructeur
+//-------------------------------------------
 MainWindow::MainWindow(int updateRate, QWidget *parent):
     QMainWindow(parent)
 {
@@ -23,10 +22,7 @@ MainWindow::MainWindow(int updateRate, QWidget *parent):
     chartA_.addSeries(&seriesApos_);
     chartA_.addSeries(&seriesAangle_);
 
-
     stateMachine_ = StateMachine();
-
-
 
     // Fonctions de connections events/slots
     connectTimers(updateRate);
@@ -40,6 +36,9 @@ MainWindow::MainWindow(int updateRate, QWidget *parent):
     updateTimer_.start();
 }
 
+//-------------------------------------------
+// Destructeur
+//-------------------------------------------
 MainWindow::~MainWindow(){
     // Destructeur de la classe
     updateTimer_.stop();
@@ -49,6 +48,9 @@ MainWindow::~MainWindow(){
     delete ui;
 }
 
+//-------------------------------------------
+// Fonctions d'events
+//-------------------------------------------
 void MainWindow::closeEvent(QCloseEvent *event){
     // Fonction appelee lorsque la fenetre est detruite
     event->accept();
@@ -58,6 +60,8 @@ void MainWindow::receiveFromSerial(QString msg){
     // Fonction appelee lors de reception sur port serie
     // Accumulation des morceaux de message
     msgBuffer_ += msg;
+
+    //qDebug() << "MSG : " << jsonResponse.isEmpty();
 
     //Si un message est termine
     if(msgBuffer_.endsWith('\n')){
@@ -75,11 +79,13 @@ void MainWindow::receiveFromSerial(QString msg){
             if(jsonObj.contains("type") && jsonObj["type"] == "robot_state") {
 
                 time = jsonObj["time"].toDouble() / 1000.0; // le temps est est en ms
-                position = jsonObj["x"].toDouble();
+                position = jsonObj["position"].toDouble();
+                speed = jsonObj["speed"].toDouble();
                 angle = jsonObj["angle"].toDouble();
-                state = jsonObj.value("state").toString();
+                angularSpeed = jsonObj["angular_speed"].toDouble();
+                state = jsonObj.["state"].toString();
 
-                ui->totalTimeLabel->setText("Time: " + QString::number(getTime(),'f', 2) + " sec");
+                ui->totalTimeLabel->setText("Time: " + QString::number(time,'f', 2) + " sec");
                 ui->stateLabelA->setText("State: " + state);
 
                 seriesApos_.append(time, position);
@@ -94,9 +100,11 @@ void MainWindow::receiveFromSerial(QString msg){
                 chartA_.createDefaultAxes();
 
                 qDebug()
-                        << "Position" << getPosition()
-                        << "Angle"    << getAngle()
-                        << "State"    << getState();
+                        << "Position" << position
+                        << "Vitesse"    << speed
+                        << "Angle"    << angle
+                        << "AngVel"    << angularSpeed
+                        << "State"    << state;
             }
             else {
                 msgReceived_ = msgBuffer_;
@@ -105,51 +113,39 @@ void MainWindow::receiveFromSerial(QString msg){
         }
         // Reinitialisation du message tampon
         msgBuffer_ = "";
+
+        // Mise a jour state machine
+        stateMachine_.update(state, position, speed, angle, angularSpeed);
+        QString nextState = stateMachine_.getState();
+        double x_target = stateMachine_.getTargetX();
+
+        // Formatte et envoie message
+        QJsonObject jsonObject
+        {
+            {"cmd", nextState},
+            {"x_target", x_target}
+        };
+
+        QJsonDocument doc(jsonObject); // Formatage en document JSON
+        QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+        sendMessage(strJson);
     }
-
-    stateMachine_.update(state);
-    QString nextState = stateMachine_.getState();
-    double x_target = stateMachine_.getTargetX();
-
-
-    QJsonObject jsonObject
-    {
-        {"cmd", nextState},
-        {"x_target", x_target}
-    };
-
-    QJsonDocument doc(jsonObject); // Formatage en document JSON
-    QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
-    sendMessage(strJson);
-
-
-
-
-
 }
 
-
-QString MainWindow::getState() const
-{
-     return state;
-}
-double MainWindow::getPosition() const
-{
-    return position;
-}
-double MainWindow::getAngle() const
-{
-    return angle;
+void MainWindow::onMessageReceived(QString msg){
+    // Fonction appelee lors de reception de message
+    // Decommenter la ligne suivante pour deverminage
+    qDebug().noquote() << "Message du Arduino: " << msg;
 }
 
-double MainWindow::getTime () const
-{
-    return time;
+void MainWindow::onPeriodicUpdate(){
+    // Fonction SLOT appelee a intervalle definie dans le constructeur
+    // qDebug().noquote() << "*";
 }
 
-
-
-
+//-------------------------------------------
+// Fonctions de connections
+//-------------------------------------------
 void MainWindow::connectTimers(int updateRate){
     // Fonction de connection de timers
     connect(&updateTimer_, &QTimer::timeout, this, [this]{onPeriodicUpdate();});
@@ -168,32 +164,37 @@ void MainWindow::connectButtons(){
     connect(ui->stopButton, SIGNAL(clicked(bool)), this, SLOT(stopButtonClicked()));
 }
 
+void MainWindow::connectComboBox(){
+    // Fonction de connection des entrees deroulantes
+    connect(ui->comboBoxPort, SIGNAL(activated(QString)), this, SLOT(startSerialCom(QString)));
+}
+
+//-------------------------------------------
+// Functions de boutons
+//-------------------------------------------
 void MainWindow::resetButtonClicked() {
     // modifié
     qDebug().noquote() <<"Bouton reset";
-    QJsonObject jsonObject{
-
-            {"cmd", "RESET"}
-
-
-
+    QJsonObject jsonObject
+    {
+        {"cmd", "RESET"}
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    stateMachine_.sendButtonCommand(StateMachine::ButtonType::RESET);
     sendMessage(strJson);   // Envoi du message
 }
 
 void MainWindow::startButtonClicked() {
     // modifié
     qDebug().noquote() <<"Bouton start";
-    QJsonObject jsonObject{
-
-            {"cmd", "START"}
-
-
+    QJsonObject jsonObject
+    {
+        {"cmd", "START"}
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    stateMachine_.sendButtonCommand(StateMachine::ButtonType::START);
     sendMessage(strJson);   // Envoi du message
 }
 
@@ -202,21 +203,19 @@ void MainWindow::stopButtonClicked() {
     qDebug().noquote() <<"Bouton stop";
     QJsonObject jsonObject
     {
-
-            {"cmd", "STOP"}
-
+        {"cmd", "STOP"}
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    stateMachine_.sendButtonCommand(StateMachine::ButtonType::STOP);
     sendMessage(strJson);   // Envoi du message
 }
 
 
-void MainWindow::connectComboBox(){
-    // Fonction de connection des entrees deroulantes
-    connect(ui->comboBoxPort, SIGNAL(activated(QString)), this, SLOT(startSerialCom(QString)));
-}
 
+//-------------------------------------------
+// Fonctions utilitaires
+//-------------------------------------------
 void MainWindow::portCensus(){
     // Fonction pour recenser les ports disponibles
     ui->comboBoxPort->clear();
@@ -235,7 +234,6 @@ void MainWindow::startSerialCom(QString portName){
     connectSerialPortRead();
 }
 
-
 void MainWindow::sendMessage(QString msg){
     // Fonction SLOT d'ecriture sur le port serie
     if(serialCom_==nullptr){
@@ -249,15 +247,4 @@ void MainWindow::sendMessage(QString msg){
 void MainWindow::setUpdateRate(int rateMs){
     // Fonction d'initialisation du chronometre
     updateTimer_.start(rateMs);
-}
-
-void MainWindow::onMessageReceived(QString msg){
-    // Fonction appelee lors de reception de message
-    // Decommenter la ligne suivante pour deverminage
-    qDebug().noquote() << "Message du Arduino: " << msg;
-}
-
-void MainWindow::onPeriodicUpdate(){
-    // Fonction SLOT appelee a intervalle definie dans le constructeur
-    qDebug().noquote() << "*";
 }

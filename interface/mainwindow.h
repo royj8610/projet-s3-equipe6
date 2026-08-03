@@ -35,7 +35,8 @@ public:
     virtual ~MainWindow() override;
     void closeEvent(QCloseEvent *event) override;
 
-    void sendMessage(QString msg);//à changer
+    void sendMessage(QString msg);
+    void sendButton(QString msg);
     void setUpdateRate(int rateMs);
 
     void onPeriodicUpdate();

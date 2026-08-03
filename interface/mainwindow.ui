@@ -41,6 +41,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QLabel" name="maxPowerLabel">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="numTreeLabel">
         <property name="text">
          <string>TextLabel</string>
