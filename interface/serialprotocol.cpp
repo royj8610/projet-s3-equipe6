@@ -24,11 +24,28 @@ void SerialProtocol::connectSignals(){
 void SerialProtocol::sendMessage(QString msg) {
     // Fonction d'ecriture sur le port serie
     if (serial_->isOpen()) {
-        serial_->write(msg.toUtf8());
+        QByteArray data = msg.toUtf8();  // NOTE : Il faut avoir un \n pour que le Arduino parse correctement
+        data.append("\n");
+        serial_->write(data);
     }
 }
 
 void SerialProtocol::readReceivedMsg(){
     // Fonction de lecture du port serie
-    emit newMessage(serial_->readAll());
+    receiveBuffer_.append(serial_->readAll());
+    qsizetype newlineIndex;
+
+    while((newlineIndex = receiveBuffer_.indexOf('\n')) >= 0)
+    {
+        QByteArray line = receiveBuffer_.left(newlineIndex);
+        receiveBuffer_.remove(0, newlineIndex+1);
+
+        // Le println du arduino ajoute normalement "\r\n"
+        line = line.trimmed();
+
+        if(!line.isEmpty())
+        {
+            emit newMessage(QString::fromUtf8(line));
+        }
+    }
 }

@@ -21,6 +21,7 @@ MainWindow::MainWindow(int updateRate, QWidget *parent):
     chartA_.legend()->hide();
     chartA_.addSeries(&seriesApos_);
     chartA_.addSeries(&seriesAangle_);
+    chartA_.createDefaultAxes();
 
     stateMachine_ = StateMachine();
 
@@ -57,6 +58,86 @@ void MainWindow::closeEvent(QCloseEvent *event){
 }
 
 void MainWindow::receiveFromSerial(QString msg){
+    const QString cleanMsg = msg.trimmed();
+
+    if(cleanMsg.isEmpty())
+    {
+        qDebug() << "Ligne série vide ignorée";
+        return;
+    }
+
+    // On prend le message recu
+    QJsonParseError parseError;
+    QJsonDocument jsonResponse = QJsonDocument::fromJson(cleanMsg.toUtf8(), &parseError);
+
+    // Y a t il une error
+    if (parseError.error != QJsonParseError::NoError)
+    {
+        qDebug().noquote()
+                << "JSON invalid : "
+                << parseError.errorString()
+                << "\nMessage recu : "
+                << msg;
+        return;
+    }
+
+    // Est ce qu'on a bien recu un objet
+    if(!jsonResponse.isObject())
+    {
+        qDebug() << "JSON n'est pas un objet";
+        return;
+    }
+
+    const QJsonObject jsonObj = jsonResponse.object();
+    const QString messageType = jsonObj.value("type").toString();
+
+    // C'est quoi le type de message
+    if(messageType != "robot_state")
+    {
+        onMessageReceived(msg);
+        return;
+    }
+
+    // Parse le message
+    time = jsonObj.value("time").toDouble() / 1000.0; // le temps est est en ms
+    position = jsonObj.value("position").toDouble();
+    speed = jsonObj.value("speed").toDouble();
+    angle = jsonObj.value("angle").toDouble();
+    angularSpeed = jsonObj.value("angular_speed").toDouble();
+    state = jsonObj.value("state").toString();
+
+    ui->totalTimeLabel->setText("Time: " + QString::number(time,'f', 2) + " sec");
+    ui->stateLabelA->setText("State: " + state);
+
+    qDebug()
+            << "Position" << position
+            << "Vitesse"    << speed
+            << "Angle"    << angle
+            << "AngVel"    << angularSpeed
+            << "State"    << state;
+
+    seriesApos_.append(time, position);
+    seriesAangle_.append(time, angle);
+
+    // Mise a jour state machine
+    stateMachine_.update(state, position, speed, angle, angularSpeed);
+    QString nextState = stateMachine_.getState();
+    double x_target = stateMachine_.getTargetX();
+
+    // Formatte et envoie message
+    QJsonObject jsonObject
+    {
+        {"cmd", nextState},
+        {"x_target", x_target}
+    };
+
+    QJsonDocument doc(jsonObject); // Formatage en document JSON
+    QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
+    sendMessage(strJson);
+
+    return;
+
+    /*
     // Fonction appelee lors de reception sur port serie
     // Accumulation des morceaux de message
     msgBuffer_ += msg;
@@ -66,7 +147,7 @@ void MainWindow::receiveFromSerial(QString msg){
     //Si un message est termine
     if(msgBuffer_.endsWith('\n')){
         // Passage ASCII vers structure Json
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(msgBuffer_.toUtf8());
+        //QJsonDocument jsonResponse = QJsonDocument::fromJson(msgBuffer_.toUtf8());
 
         // Analyse du message Json
         if(!jsonResponse.isEmpty()){
@@ -85,19 +166,26 @@ void MainWindow::receiveFromSerial(QString msg){
                 angularSpeed = jsonObj["angular_speed"].toDouble();
                 state = jsonObj.["state"].toString();
 
-                ui->totalTimeLabel->setText("Time: " + QString::number(time,'f', 2) + " sec");
+
+                ui->totalTimeLeries(&seriesAangle_);
+
+
+                qDebug()
+                        << "Position" << position
+                        << "Vitesse"    << speed
+                        << "Angle"    << angle
+                        << "AngVel"    << angularSpeed
+                        << "State"    << state;abel->setText("Time: " + QString::number(time,'f', 2) + " sec");
                 ui->stateLabelA->setText("State: " + state);
 
                 seriesApos_.append(time, position);
-                chartA_.removeSeries(&seriesApos_);
-                chartA_.addSeries(&seriesApos_);
-                chartA_.createDefaultAxes();
-
+                //chartA_.removeSeries(&seriesApos_);
+                //chartA_.addSeries(&seriesApos_);
 
                 seriesAangle_.append(time, angle);
-                chartA_.removeSeries(&seriesAangle_);
-                chartA_.addSeries(&seriesAangle_);
-                chartA_.createDefaultAxes();
+                //chartA_.removeSeries(&seriesAangle_);
+                //chartA_.addSeries(&seriesAangle_);
+
 
                 qDebug()
                         << "Position" << position
@@ -130,6 +218,7 @@ void MainWindow::receiveFromSerial(QString msg){
         QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
         sendMessage(strJson);
     }
+    */
 }
 
 void MainWindow::onMessageReceived(QString msg){
