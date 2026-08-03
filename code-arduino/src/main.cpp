@@ -45,12 +45,12 @@ const float CLEARANCE = 0.015;
 
 const float TOL = 0.08;
 
-const float TARGET = 1.0;
+const float TARGET = 1.0 * MOTOR_SIGN;
 
 //-----------------------------------------
 //                Objects
 //-----------------------------------------
-PendulumEncoder encoPendule(46); // CS pin 9, SPI speed default from library header (can pass a custom speed)
+PendulumEncoder encoPendule(AS5047P_CS_PIN); // CS pin 9, SPI speed default from library header (can pass a custom speed)
 CommJSON communication(Serial);
 Motor motor = Motor();
 
@@ -160,30 +160,30 @@ void setup()
 void loop()
 {
   // Lecture de la commande recu depuis le raspbrry
-  if (communication.read())
-  {
-    const CommJSON::Command command = communication.consumeCommand();
+  // if (communication.read())
+  // {
+  //   const CommJSON::Command command = communication.consumeCommand();
 
-    switch (command)
-    {
-    case CommJSON::Command::Start:
-      robotState = States::Swing;
-      break;
+  //   switch (command)
+  //   {
+  //   case CommJSON::Command::Start:
+  //     robotState = States::Swing;
+  //     break;
 
-    case CommJSON::Command::Stop:
-      robotState = States::Idle;
-      break;
+  //   case CommJSON::Command::Stop:
+  //     robotState = States::Idle;
+  //     break;
 
-    case CommJSON::Command::SetTarget:
-      targetPosition = communication.getTargetPosition();
-      robotState = States::Stabilize;
-      break;
+  //   case CommJSON::Command::SetTarget:
+  //     targetPosition = communication.getTargetPosition();
+  //     robotState = States::Stabilize;
+  //     break;
 
-    case CommJSON::Command::None:
-    case CommJSON::Command::Invalid:
-      break;
-    }
-  }
+  //   case CommJSON::Command::None:
+  //   case CommJSON::Command::Invalid:
+  //     break;
+  //   }
+  // }
 
   // Prise des mesures
   unsigned long currentTime = millis();
@@ -211,6 +211,7 @@ void loop()
   Serial.read();
   if (Serial.available() && robotState == States::Idle)
   {
+    motor.setOffset();
     delay(100);
     motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
     robotState = States::Swing;
@@ -224,28 +225,28 @@ void loop()
     delay(500);
   }
   // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
-  else if (robotState == States::Swing && (L_ROD - L_ROD * cos(angle) > CLEARANCE) && (angle < 0) && (angularSpeed <= 0))
+  else if (robotState == States::Swing && (L_ROD - L_ROD * cos(angle - targetAngle) > CLEARANCE) && (angle < targetAngle) && (angularSpeed <= 0))
   {
     robotState = States::MoveToX;
     targetPosition = TARGET;
   }
   // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
-  else if (robotState == States::Swing && position > 0.6)
+  else if (robotState == States::Swing && position * MOTOR_SIGN > 0.6)
   {
     robotState = States::MoveToX;
     targetPosition = TARGET;
   }
-  else if (robotState == States::MoveToX && targetPosition == TARGET && position >= 0.7)
+  else if (robotState == States::MoveToX && targetPosition == TARGET && position * MOTOR_SIGN >= 0.7)
   {
     robotState = States::Stabilize;
   }
   else if (robotState == States::Stabilize && checkTol(angle, targetAngle, TOL) && checkTol(angularSpeed, 0, TOL) && checkTol(position, targetPosition, 0.04))
   {
     magnetDetach();
-    robotState = States::MoveToX;
+    robotState = States::MoveBack;
     targetPosition = 0;
   }
-  else if (robotState == States::MoveToX && targetPosition == 0 && checkTol(position, targetPosition, 0.02))
+  else if (robotState == States::MoveBack && checkTol(position, 0.0, 0.04))
   {
     robotState = States::Idle;
     motor.setAxisState(AxisState::IDLE);
@@ -264,6 +265,15 @@ void loop()
     break;
   }
 
+  case States::MoveBack:
+  {
+    float u = LQR_BACK[0] * goal[0] + LQR_BACK[1] * goal[1] + LQR_BACK[2] * goal[2] + LQR_BACK[3] * goal[3];
+
+    motor.setForce(-u);
+
+    break;
+  }
+
   case States::Stabilize:
   {
     float u = LQR_STAB[0] * goal[0] + LQR_STAB[1] * goal[1] + LQR_STAB[2] * goal[2] + LQR_STAB[3] * goal[3];
@@ -275,7 +285,7 @@ void loop()
 
   case States::Swing:
   {
-    motor.setForce(100);
+    motor.setForce(100 * MOTOR_SIGN);
 
     break;
   }
@@ -306,5 +316,7 @@ void loop()
 
     bool msgSent = communication.sendState(state);
   }
+
+  delay(10);
 
 } // Loop end
