@@ -13,34 +13,44 @@ StateMachine::StateMachine()
 // Functions publics
 //-------------------------------------------
 void StateMachine::update(QString state, double position, double speed, double angle, double angularSpeed){
-    double r_angle = angle *PI /180.0;
-    double h_arbre = std::cos(r_angle) * H_PENDULE;
 
     if(state == "IDLE"
             && shouldStart_)
     {
-        nextState_ = "SWING";
-    }
-    else if(state == "SWING"
-            && h_arbre < H_OBSTACLE)
-    {
-        nextState_ = "MOVE_TO_X";
-    }
-    else if(state == "MOVE_TO_X"
-            && position >= TARGET_X_DROP)
-    {
         nextState_ = "STABILIZE";
-    }
-    else if(state == "STABILIZE")
-    {
-        ////hmmmmmmm
-        nextState_ = "DROP";
+        nextTargetX_ = 0.5;
+
 
     }
-    else if (state == "DROP")
+    else if(state == "STABILIZE"
+            && position > 0.4)
+    { 
+            nextState_ = "SWING";
+    }
+    else if(state == "SWING"
+            && (qAbs(position - 0.7) <= POSITION_TOLERANCE) )
     {
-        //hmmmmmmmmmmm
-        qDebug() << "Le robot depose la charge";
+
+            nextState_ = "STABILIZE";
+            nextTargetX_ = 1.2;
+
+    }
+    else if(state == "STABILIZE"
+            && (qAbs(position - nextTargetX_) <= POSITION_TOLERANCE)
+            && (qAbs(angularSpeed - 0) <= SPEED_TOLERANCE)
+            && (qAbs(angle - 0) <= ANGLE_TOLERANCE))
+    {
+
+        nextState_ = "MOVE_BACK";
+        nextTargetX_ = 0;
+
+    }
+    else if (state == "MOVE_BACK"
+             && (qAbs(position - nextTargetX_) <= POSITION_TOLERANCE)
+             && (qAbs(speed - 0) <= SPEED_TOLERANCE))
+    {
+        treeNum_ += 1;
+
         nextState_ = "IDLE";
     }
     else
@@ -48,7 +58,6 @@ void StateMachine::update(QString state, double position, double speed, double a
         qDebug() << "State inconnu! On revient IDLE";
         nextState_ = "IDLE";
     }
-
 
 }
 
@@ -58,12 +67,15 @@ void StateMachine::sendButtonCommand(StateMachine::ButtonType buttonType)
     switch(buttonType){
     case StateMachine::ButtonType::START:{
         shouldStart_ = true;
+        break;
     }
     case StateMachine::ButtonType::STOP:{
         shouldStart_ = false;
+        break;
     }
     case StateMachine::ButtonType::RESET:{
         shouldStart_ = false;
+        break;
     }
     }
 }
@@ -78,4 +90,9 @@ QString StateMachine::getState (){
 
 double StateMachine::getTargetX(){
     return nextTargetX_;
+}
+
+uint8_t StateMachine::getTreeNum(){
+
+    return treeNum_;
 }

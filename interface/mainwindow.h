@@ -62,6 +62,9 @@ private:
     void connectSerialPortRead();
     void connectComboBox();
     void portCensus();
+    QValueAxis *axisX_;
+    QValueAxis *axisY_;
+
 
     bool record = false;
     QTimer updateTimer_;
@@ -83,6 +86,7 @@ private:
     double angle = 0.0;
     double time = 0.0;
     double speed =0.0;
+    double power = 0.0;
     double angularSpeed = 0.0;
     double acceleraionX = 0.0;
     double targetPosition = 0.0;
