@@ -93,6 +93,7 @@ private:
 
     bool slipDetected = false;
     bool arduinoReady = false;
+    bool hasExtended = false;
 
     StateMachine stateMachine_;
 

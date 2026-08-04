@@ -32,13 +32,13 @@ public:
     static constexpr double TARGET_X_PICKUP = 0;
     static constexpr double PI = 3.14159265;
     static constexpr double POSITION_TOLERANCE = 0.05;
-    static constexpr double ANGLE_TOLERANCE = 0.05;
-    static constexpr double SPEED_TOLERANCE = 0.05;
+    static constexpr double ANGLE_TOLERANCE = 0.06;
+    static constexpr double SPEED_TOLERANCE = 0.06;
 
 
     // Méthodes
     StateMachine();
-    void update(QString state, double angle, double position, double speed, double angularSpeed);
+    void update(QString state, double angle, double position, double speed, double angularSpeed, bool hasExtended);
     QString getState();
     double getTargetX();
     uint8_t getTreeNum();
@@ -50,6 +50,7 @@ private :
     double nextTargetX_ = 0;
     bool shouldStart_ = false;
     uint8_t treeNum_ = 0;
+    QString lastState_ = "";
 
 };
 

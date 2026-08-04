@@ -35,7 +35,7 @@ MainWindow::MainWindow(int updateRate, QWidget *parent):
     axisY_->setTitleText("Valeur");
 
     axisX_->setRange(0, 10);
-    axisY_->setRange(0, 1);
+    axisY_->setRange(-150, 150);
 
     chartA_.addAxis(axisX_, Qt::AlignBottom);
     chartA_.addAxis(axisY_, Qt::AlignLeft);
@@ -123,32 +123,36 @@ void MainWindow::receiveFromSerial(QString msg){
 
     // Parse le message
     time = jsonObj.value("time").toDouble() / 1000.0; // le temps est est en ms
-    position = jsonObj.value("position").toDouble()*100;
+    position = jsonObj.value("position").toDouble();
     speed = jsonObj.value("speed").toDouble();
     angle = jsonObj.value("angle").toDouble();
     angularSpeed = jsonObj.value("angular_speed").toDouble();
     state = jsonObj.value("state").toString();
     power = jsonObj.value("power").toDouble();
+    hasExtended = jsonObj.value("extended").toBool();
 
-    ui->totalTimeLabel->setText("Time: " + QString::number(time,'f', 2) + " sec");
-    ui->stateLabelA->setText("State: " + state);
-    ui->maxPowerLabel->setText("Maximum power: " + QString::number(power,'f', 2));
-    ui->numTreeLabel->setText("Tree dropped: " + stateMachine_.getTreeNum());
     qDebug()
+            << "New State" << state
             << "Position" << position
             << "Vitesse"    << speed
             << "Angle"    << angle
             << "AngVel"    << angularSpeed
-            << "State"    << state
-            << "Power" << power;
+            << "Extended" << hasExtended;
 
-    seriesApos_.append(time, position);
-    seriesAangle_.append(time, angle);
+    // Update les labels
+    ui->totalTimeLabel->setText("Time: " + QString::number(time,'f', 2) + " sec");
+    ui->stateLabelA->setText("State: " + state);
+    ui->maxPowerLabel->setText("Maximum power: " + QString::number(power,'f', 2));
+    ui->numTreeLabel->setText("Tree dropped: " + stateMachine_.getTreeNum());
 
+
+    // Update les données du graph
+    seriesApos_.append(time, position*100);
+    seriesAangle_.append(time, angle*180/StateMachine::PI);
     axisX_->setRange(time - 10, time);
 
     // Mise a jour state machine
-    stateMachine_.update(state, position, speed, angle, angularSpeed);
+    stateMachine_.update(state, position, speed, angle, angularSpeed, hasExtended);
     QString nextState = stateMachine_.getState();
     double x_target = stateMachine_.getTargetX();
 
@@ -167,7 +171,7 @@ void MainWindow::receiveFromSerial(QString msg){
 void MainWindow::onMessageReceived(QString msg){
     // Fonction appelee lors de reception de message
     // Decommenter la ligne suivante pour deverminage
-    qDebug().noquote() << "Message du Arduino: " << msg;
+    // qDebug().noquote() << "Message du Arduino: " << msg;
 }
 
 void MainWindow::onPeriodicUpdate(){
@@ -206,7 +210,7 @@ void MainWindow::connectComboBox(){
 //-------------------------------------------
 void MainWindow::resetButtonClicked() {
     // modifié
-    qDebug().noquote() <<"Bouton reset";
+    //qDebug().noquote() <<"Bouton reset";
     QJsonObject jsonObject
     {
         {"cmd", "RESET"}
@@ -219,7 +223,7 @@ void MainWindow::resetButtonClicked() {
 
 void MainWindow::startButtonClicked() {
     // modifié
-    qDebug().noquote() <<"Bouton start";
+    //qDebug().noquote() <<"Bouton start";
     QJsonObject jsonObject
     {
         {"cmd", "START"}
@@ -232,7 +236,7 @@ void MainWindow::startButtonClicked() {
 
 void MainWindow::stopButtonClicked() {
     // modifié
-    qDebug().noquote() <<"Bouton stop";
+    //qDebug().noquote() <<"Bouton stop";
     QJsonObject jsonObject
     {
         {"cmd", "STOP"}
@@ -273,7 +277,7 @@ void MainWindow::sendMessage(QString msg){
         return;
     }
     serialCom_->sendMessage(msg);
-    qDebug().noquote() <<"Message du RPI: "  <<msg;
+    // qDebug().noquote() <<"Message du RPI: "  <<msg;
 }
 
 void MainWindow::setUpdateRate(int rateMs){
