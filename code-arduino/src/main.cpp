@@ -33,7 +33,7 @@
 //-----------------------------------------
 //               Constantes
 //-----------------------------------------
-const unsigned long DELAI_ENVOI = 50; // 100 ms = 10 Hz
+const unsigned long DELAI_ENVOI = 20; // 100 ms = 10 Hz
 // k_stab: [[ 44.72135955  24.48511986 -54.18831837  -5.26798942]]
 // k_goto: [[31.6227766   8.40881948  1.06721826  0.26126971]]
 const float LQR_MOVE[4] = {31.6227766, 8.40881948, 1.06721826, 0.26126971};
@@ -235,57 +235,6 @@ void loop()
 
   lastMeasureTime = currentTime;
   lastAngle = angle;
-
-  // State machine temporaire - Condition depuis la state machine
-  // Serial.read();
-  // if (Serial.available() && robotState == States::Idle)
-  // {
-  //   // motor.setOffset();
-  //   delay(100);
-  //   motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
-  //   robotState = States::Stabilize;
-  //   targetPosition = 0.5 * MOTOR_SIGN;
-  // }
-  // else if (Serial.available() && robotState != States::Idle)
-  // {
-  //   Serial.println("Bailed out");
-  //   motor.setAxisState(AxisState::IDLE);
-  //   motor.setForce(0.0);
-  //   robotState = States::Idle;
-  //   delay(500);
-  // }
-  // else if (robotState == States::Stabilize && targetPosition == 0.5 * MOTOR_SIGN && position * MOTOR_SIGN > 0.3)
-  // {
-  //   robotState = States::Swing;
-  // }
-  // // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
-  // else if (robotState == States::Swing && (L_ROD - L_ROD * cos(angle - targetAngle) > CLEARANCE) && (angle < targetAngle) && (angularSpeed <= 0))
-  // {
-  //   robotState = States::Stabilize;
-  //   targetPosition = TARGET;
-  // }
-  // // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
-  // else if (robotState == States::Swing && position * MOTOR_SIGN > 0.6)
-  // {
-  //   robotState = States::Stabilize;
-  //   targetPosition = TARGET;
-  // }
-  // else if (robotState == States::Stabilize && checkTol(angle, targetAngle, TOL) && checkTol(angularSpeed, 0, TOL) && checkTol(position, targetPosition, 0.04))
-  // {
-  //   magnet.detach();
-  //   robotState = States::MoveBack;
-  //   targetPosition = TARGET;
-  // }
-  // else if (robotState == States::MoveBack && checkTol(position, TARGET, 0.04) && !magnet.isExtended())
-  // {
-  //   robotState = States::MoveBack;
-  //   targetPosition = 0.0;
-  // }
-  // else if (robotState == States::MoveBack && checkTol(position, 0.0, 0.04) && checkTol(speed, 0.0, 0.04))
-  // {
-  //   robotState = States::Idle;
-  //   motor.setAxisState(AxisState::IDLE);
-  // }
 
   // Calcul de la commande moteur
   float goal[4] = {position - targetPosition, speed, sin(angle - targetAngle), angularSpeed};
