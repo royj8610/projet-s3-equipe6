@@ -43,9 +43,9 @@ const float LQR_STAB[4] = {44.72135955, 24.48511986, -54.18831837, -5.26798942};
 const float L_ROD = 0.25;
 const float CLEARANCE = 0.015;
 
-const float TOL = 0.08;
+const float TOL = 0.05;
 
-const float TARGET = 1.0 * MOTOR_SIGN;
+const float TARGET = 1.2 * MOTOR_SIGN;
 
 //-----------------------------------------
 //                Objects
@@ -204,6 +204,12 @@ void loop()
   double angularSpeed = (angle - lastAngle) / dt;
   double accelerationX = 0;
 
+  // Get power
+  motor.fetchVoltageCurrent();
+  double power = motor.getElectricalPower();
+  // Serial.println(power);
+  // motor.sniff();
+
   lastMeasureTime = currentTime;
   lastAngle = angle;
 
@@ -211,10 +217,11 @@ void loop()
   Serial.read();
   if (Serial.available() && robotState == States::Idle)
   {
-    motor.setOffset();
+    // motor.setOffset();
     delay(100);
     motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
-    robotState = States::Swing;
+    robotState = States::Stabilize;
+    targetPosition = 0.5 * MOTOR_SIGN;
   }
   else if (Serial.available() && robotState != States::Idle)
   {
@@ -224,16 +231,20 @@ void loop()
     robotState = States::Idle;
     delay(500);
   }
+  else if (robotState == States::Stabilize && targetPosition == 0.5 * MOTOR_SIGN && position * MOTOR_SIGN > 0.3)
+  {
+    robotState = States::Swing;
+  }
   // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
   else if (robotState == States::Swing && (L_ROD - L_ROD * cos(angle - targetAngle) > CLEARANCE) && (angle < targetAngle) && (angularSpeed <= 0))
   {
-    robotState = States::MoveToX;
+    robotState = States::Stabilize;
     targetPosition = TARGET;
   }
   // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
   else if (robotState == States::Swing && position * MOTOR_SIGN > 0.6)
   {
-    robotState = States::MoveToX;
+    robotState = States::Stabilize;
     targetPosition = TARGET;
   }
   else if (robotState == States::MoveToX && targetPosition == TARGET && position * MOTOR_SIGN >= 0.7)
@@ -246,7 +257,7 @@ void loop()
     robotState = States::MoveBack;
     targetPosition = 0;
   }
-  else if (robotState == States::MoveBack && checkTol(position, 0.0, 0.04))
+  else if (robotState == States::MoveBack && checkTol(position, 0.0, 0.04) && checkTol(speed, 0.0, 0.04))
   {
     robotState = States::Idle;
     motor.setAxisState(AxisState::IDLE);
@@ -298,25 +309,23 @@ void loop()
   }
 
   // Envoie de l'état robot au raspberry
-  if (millis() - timerEnvoi >= DELAI_ENVOI)
-  {
-    DEBUG_PRINT("Send state : ");
-    timerEnvoi = millis();
+  // if (millis() - timerEnvoi >= DELAI_ENVOI)
+  // {
+  //   DEBUG_PRINT("Send state : ");
+  //   timerEnvoi = millis();
 
-    CommJSON::RobotState state;
+  //   CommJSON::RobotState state;
 
-    state.position = position;
-    state.speed = speed;
-    state.angle = angle;
-    state.angularSpeed = angularSpeed;
-    state.accelerationX = accelerationX;
-    state.slipDetected = false;
-    state.state = robotState;
-    state.targetPosition = targetPosition;
+  //   state.position = position;
+  //   state.speed = speed;
+  //   state.angle = angle;
+  //   state.angularSpeed = angularSpeed;
+  //   state.accelerationX = accelerationX;
+  //   state.slipDetected = false;
+  //   state.state = robotState;
+  //   state.targetPosition = targetPosition;
 
-    bool msgSent = communication.sendState(state);
-  }
-
-  delay(10);
+  //   bool msgSent = communication.sendState(state);
+  // }
 
 } // Loop end
