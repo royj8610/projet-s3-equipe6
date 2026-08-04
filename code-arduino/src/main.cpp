@@ -165,6 +165,7 @@ void loop()
       if (robotState != States::Idle)
       {
         motor.setAxisState(AxisState::IDLE);
+        magnet.retract();
       }
 
       robotState = States::Idle;
@@ -172,6 +173,10 @@ void loop()
     }
     case CommJSON::Command::Stabilize:
     {
+      if (robotState == States::Idle)
+      {
+        motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
+      }
       targetPosition = communication.getTargetPosition();
       robotState = States::Stabilize;
       break;

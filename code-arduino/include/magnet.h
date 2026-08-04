@@ -9,6 +9,7 @@ class Magnet
 private:
     Servo servo;
     unsigned long lastDrop = 0;
+    bool extended = false;
 
 public:
     void init();

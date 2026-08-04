@@ -13,14 +13,16 @@ void Magnet::extend()
 {
     lastDrop = millis();
     servo.write(SERVO_OFFSET + RANGE_DEG);
+    extended = true;
 }
 
 void Magnet::retract()
 {
     servo.write(SERVO_OFFSET);
+    extended = false;
 }
 
 bool Magnet::isExtended()
 {
-    return (millis() - lastDrop) > DELAY_MILLIS;
+    return (millis() - lastDrop) > DELAY_MILLIS && extended;
 }
