@@ -9,9 +9,10 @@ public:
     enum class Command
     {
         None,
-        Start,
+        Swing,
         Stop,
-        SetTarget,
+        Stabilize,
+        MoveBack,
         Invalid
     };
 
