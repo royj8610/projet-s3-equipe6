@@ -105,6 +105,7 @@ bool CommJSON::sendState(const RobotState &state)
     // documentJson["slip"] = state.slipDetected;
     documentJson["target"] = state.targetPosition;
     documentJson["power"] = state.power;
+    documentJson["extended"] = state.magnetExtended;
 
     const size_t bytesWritten = serializeJson(documentJson, _serial);
 

@@ -20,7 +20,7 @@
 //-----------------------------------------
 //                 Defines
 //-----------------------------------------
-#define DEBUG // Commenter pour retirer le mode debug
+// #define DEBUG // Commenter pour retirer le mode debug
 
 #ifdef DEBUG // Crée des macros pour faire rapidement disparaitre les prints de débug
 #define DEBUG_PRINT(x) Serial.print(x)
@@ -161,30 +161,41 @@ void setup()
 void loop()
 {
   // Lecture de la commande recu depuis le raspbrry
-  // if (communication.read())
-  // {
-  //   const CommJSON::Command command = communication.consumeCommand();
+  if (communication.read())
+  {
+    const CommJSON::Command command = communication.consumeCommand();
 
-  //   switch (command)
-  //   {
-  //   case CommJSON::Command::Start:
-  //     robotState = States::Swing;
-  //     break;
-
-  //   case CommJSON::Command::Stop:
-  //     robotState = States::Idle;
-  //     break;
-
-  //   case CommJSON::Command::SetTarget:
-  //     targetPosition = communication.getTargetPosition();
-  //     robotState = States::Stabilize;
-  //     break;
-
-  //   case CommJSON::Command::None:
-  //   case CommJSON::Command::Invalid:
-  //     break;
-  //   }
-  // }
+    switch (command)
+    {
+    case CommJSON::Command::Swing:
+    {
+      robotState = States::Swing;
+      break;
+    }
+    case CommJSON::Command::Stop:
+    {
+      robotState = States::Idle;
+      break;
+    }
+    case CommJSON::Command::Stabilize:
+    {
+      targetPosition = communication.getTargetPosition();
+      robotState = States::Stabilize;
+      break;
+    }
+    case CommJSON::Command::MoveBack:
+    {
+      targetPosition = communication.getTargetPosition();
+      robotState = States::MoveBack;
+      break;
+    }
+    case CommJSON::Command::None:
+    case CommJSON::Command::Invalid:
+    {
+      break;
+    }
+    }
+  }
 
   // Prise des mesures
   unsigned long currentTime = millis();
@@ -196,7 +207,7 @@ void loop()
   }
   else
   {
-    Serial.println("Can't establish connection");
+    DEBUG_PRINTLN("Can't establish connection");
   }
 
   double position = motor.getPosition();
@@ -216,55 +227,55 @@ void loop()
   lastAngle = angle;
 
   // State machine temporaire - Condition depuis la state machine
-  Serial.read();
-  if (Serial.available() && robotState == States::Idle)
-  {
-    // motor.setOffset();
-    delay(100);
-    motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
-    robotState = States::Stabilize;
-    targetPosition = 0.5 * MOTOR_SIGN;
-  }
-  else if (Serial.available() && robotState != States::Idle)
-  {
-    Serial.println("Bailed out");
-    motor.setAxisState(AxisState::IDLE);
-    motor.setForce(0.0);
-    robotState = States::Idle;
-    delay(500);
-  }
-  else if (robotState == States::Stabilize && targetPosition == 0.5 * MOTOR_SIGN && position * MOTOR_SIGN > 0.3)
-  {
-    robotState = States::Swing;
-  }
-  // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
-  else if (robotState == States::Swing && (L_ROD - L_ROD * cos(angle - targetAngle) > CLEARANCE) && (angle < targetAngle) && (angularSpeed <= 0))
-  {
-    robotState = States::Stabilize;
-    targetPosition = TARGET;
-  }
-  // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
-  else if (robotState == States::Swing && position * MOTOR_SIGN > 0.6)
-  {
-    robotState = States::Stabilize;
-    targetPosition = TARGET;
-  }
-  else if (robotState == States::Stabilize && checkTol(angle, targetAngle, TOL) && checkTol(angularSpeed, 0, TOL) && checkTol(position, targetPosition, 0.04))
-  {
-    magnet.detach();
-    robotState = States::MoveBack;
-    targetPosition = TARGET;
-  }
-  else if (robotState == States::MoveBack && checkTol(position, TARGET, 0.04) && !magnet.isExtended())
-  {
-    robotState = States::MoveBack;
-    targetPosition = 0.0;
-  }
-  else if (robotState == States::MoveBack && checkTol(position, 0.0, 0.04) && checkTol(speed, 0.0, 0.04))
-  {
-    robotState = States::Idle;
-    motor.setAxisState(AxisState::IDLE);
-  }
+  // Serial.read();
+  // if (Serial.available() && robotState == States::Idle)
+  // {
+  //   // motor.setOffset();
+  //   delay(100);
+  //   motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
+  //   robotState = States::Stabilize;
+  //   targetPosition = 0.5 * MOTOR_SIGN;
+  // }
+  // else if (Serial.available() && robotState != States::Idle)
+  // {
+  //   Serial.println("Bailed out");
+  //   motor.setAxisState(AxisState::IDLE);
+  //   motor.setForce(0.0);
+  //   robotState = States::Idle;
+  //   delay(500);
+  // }
+  // else if (robotState == States::Stabilize && targetPosition == 0.5 * MOTOR_SIGN && position * MOTOR_SIGN > 0.3)
+  // {
+  //   robotState = States::Swing;
+  // }
+  // // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
+  // else if (robotState == States::Swing && (L_ROD - L_ROD * cos(angle - targetAngle) > CLEARANCE) && (angle < targetAngle) && (angularSpeed <= 0))
+  // {
+  //   robotState = States::Stabilize;
+  //   targetPosition = TARGET;
+  // }
+  // // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
+  // else if (robotState == States::Swing && position * MOTOR_SIGN > 0.6)
+  // {
+  //   robotState = States::Stabilize;
+  //   targetPosition = TARGET;
+  // }
+  // else if (robotState == States::Stabilize && checkTol(angle, targetAngle, TOL) && checkTol(angularSpeed, 0, TOL) && checkTol(position, targetPosition, 0.04))
+  // {
+  //   magnet.detach();
+  //   robotState = States::MoveBack;
+  //   targetPosition = TARGET;
+  // }
+  // else if (robotState == States::MoveBack && checkTol(position, TARGET, 0.04) && !magnet.isExtended())
+  // {
+  //   robotState = States::MoveBack;
+  //   targetPosition = 0.0;
+  // }
+  // else if (robotState == States::MoveBack && checkTol(position, 0.0, 0.04) && checkTol(speed, 0.0, 0.04))
+  // {
+  //   robotState = States::Idle;
+  //   motor.setAxisState(AxisState::IDLE);
+  // }
 
   // Calcul de la commande moteur
   float goal[4] = {position - targetPosition, speed, sin(angle - targetAngle), angularSpeed};
@@ -319,6 +330,7 @@ void loop()
     state.state = robotState;
     state.targetPosition = targetPosition;
     state.power = 0;
+    state.magnetExtended = magnet.isExtended();
 
     bool msgSent = communication.sendState(state);
   }

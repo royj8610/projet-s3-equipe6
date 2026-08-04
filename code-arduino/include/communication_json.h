@@ -27,6 +27,7 @@ public:
         States state = States::Idle;
         double targetPosition = 0.0;
         double power = 0.0;
+        bool magnetExtended = false;
     };
 
     // Constructeur
