@@ -155,19 +155,9 @@ bool CommJSON::parseMessage(const String &message)
         return true;
     }
 
-    if (strcmp(commandText, "STABILIZE") == 0)
+    if (strcmp(commandText, "DROP") == 0)
     {
-        if (!documentJson["x_target"].is<double>())
-        {
-            _command = Command::Invalid;
-            sendError("Position cible absente ou invalide");
-            return false;
-        }
-
-        _targetPosition = documentJson["x_target"].as<double>();
-        _command = Command::Stabilize;
-
-        return true;
+        _command = Command::Drop;
         return true;
     }
 
@@ -182,6 +172,34 @@ bool CommJSON::parseMessage(const String &message)
 
         _targetPosition = documentJson["x_target"].as<double>();
         _command = Command::MoveBack;
+        return true;
+    }
+
+    if (strcmp(commandText, "MOVE_BACK") == 0)
+    {
+        if (!documentJson["x_target"].is<double>())
+        {
+            _command = Command::Invalid;
+            sendError("Position cible absente ou invalide");
+            return false;
+        }
+
+        _targetPosition = documentJson["x_target"].as<double>();
+        _command = Command::MoveBack;
+        return true;
+    }
+
+    if (strcmp(commandText, "STABILIZE") == 0)
+    {
+        if (!documentJson["x_target"].is<double>())
+        {
+            _command = Command::Invalid;
+            sendError("Position cible absente ou invalide");
+            return false;
+        }
+
+        _targetPosition = documentJson["x_target"].as<double>();
+        _command = Command::Stabilize;
         return true;
     }
 

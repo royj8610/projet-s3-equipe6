@@ -7,32 +7,20 @@ void Magnet::init()
 {
     servo.attach(SERVO_PIN);
     servo.write(SERVO_OFFSET);
-    extended = false;
 }
 
-void Magnet::detach()
+void Magnet::extend()
 {
     lastDrop = millis();
+    servo.write(SERVO_OFFSET + RANGE_DEG);
 }
 
-void Magnet::update()
+void Magnet::retract()
 {
-    if (millis() - lastDrop < DELAY_MILLIS)
-    {
-        if (!extended)
-        {
-            servo.write(SERVO_OFFSET + RANGE_DEG);
-            extended = true;
-        }
-    }
-    else if (extended)
-    {
-        servo.write(SERVO_OFFSET);
-        extended = false;
-    }
+    servo.write(SERVO_OFFSET);
 }
 
 bool Magnet::isExtended()
 {
-    return extended;
+    return (millis() - lastDrop) > DELAY_MILLIS;
 }

@@ -12,6 +12,7 @@ public:
         Swing,
         Stop,
         Stabilize,
+        Drop,
         MoveBack,
         Invalid
     };

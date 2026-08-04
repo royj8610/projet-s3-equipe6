@@ -9,12 +9,11 @@ class Magnet
 private:
     Servo servo;
     unsigned long lastDrop = 0;
-    bool extended = false;
 
 public:
     void init();
-    void detach();
-    void update();
+    void extend();
+    void retract();
 
     bool isExtended();
 };

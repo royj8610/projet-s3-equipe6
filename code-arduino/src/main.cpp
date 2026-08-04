@@ -33,7 +33,7 @@
 //-----------------------------------------
 //               Constantes
 //-----------------------------------------
-const unsigned long DELAI_ENVOI = 1000; // 100 ms = 10 Hz
+const unsigned long DELAI_ENVOI = 50; // 100 ms = 10 Hz
 // k_stab: [[ 44.72135955  24.48511986 -54.18831837  -5.26798942]]
 // k_goto: [[31.6227766   8.40881948  1.06721826  0.26126971]]
 const float LQR_MOVE[4] = {31.6227766, 8.40881948, 1.06721826, 0.26126971};
@@ -121,29 +121,17 @@ void setup()
   magnet.init();
 
   // Init motor
-  Serial.println("Wait for calibration...");
-  while (Serial.available() == 0)
-  {
-    // Do nothing, just wait
-  }
-  Serial.read();
   motor.init();
 
   motor.setControllerMode(ControlMode::TORQUE, InputMode::PASSTHROUGH);
   motor.setAxisState(AxisState::IDLE);
 
-  delay(500);
+  delay(100);
 
-  Serial.println("Set robot to starting position...");
-  Serial.read();
-  while (Serial.available() == 0)
-  {
-    // Do nothing, just wait
-  }
   motor.setOffset();
   motor.setForce(0.0);
 
-  delay(500);
+  delay(100);
 
   startTime = millis();
   // Init pour les mesures
@@ -152,7 +140,7 @@ void setup()
 
   targetAngle = encoPendule.readAngleRad();
 
-  Serial.println("Ready to start");
+  DEBUG_PRINTLN("Ready to start");
 }
 
 //-----------------------------------------
@@ -174,6 +162,11 @@ void loop()
     }
     case CommJSON::Command::Stop:
     {
+      if (robotState != States::Idle)
+      {
+        motor.setAxisState(AxisState::IDLE);
+      }
+
       robotState = States::Idle;
       break;
     }
@@ -185,8 +178,23 @@ void loop()
     }
     case CommJSON::Command::MoveBack:
     {
+      if (robotState != States::MoveBack)
+      {
+        magnet.retract();
+      }
+
       targetPosition = communication.getTargetPosition();
       robotState = States::MoveBack;
+      break;
+    }
+    case CommJSON::Command::Drop:
+    {
+      if (robotState != States::Drop)
+      {
+        magnet.extend();
+      }
+
+      robotState = States::Drop;
       break;
     }
     case CommJSON::Command::None:
@@ -219,9 +227,6 @@ void loop()
   // Get power
   motor.fetchVoltageCurrent();
   double power = motor.getElectricalPower();
-
-  // Update magnet state
-  magnet.update();
 
   lastMeasureTime = currentTime;
   lastAngle = angle;
@@ -291,6 +296,7 @@ void loop()
   }
 
   case States::Stabilize:
+  case States::Drop:
   {
     float u = LQR_STAB[0] * goal[0] + LQR_STAB[1] * goal[1] + LQR_STAB[2] * goal[2] + LQR_STAB[3] * goal[3];
 
@@ -323,7 +329,7 @@ void loop()
 
     state.position = position;
     state.speed = speed;
-    state.angle = angle;
+    state.angle = angle - targetAngle;
     state.angularSpeed = angularSpeed;
     state.accelerationX = accelerationX;
     state.slipDetected = false;

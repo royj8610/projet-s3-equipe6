@@ -6,6 +6,7 @@ enum class States
     Idle,
     Swing,
     Stabilize,
+    Drop,
     MoveBack
 };
 
@@ -24,6 +25,9 @@ inline const char *stateToString(States state)
 
     case States::Stabilize:
         return "STABILIZE";
+
+    case States::Drop:
+        return "DROP";
 
     default:
         return "UNKNOWN";
