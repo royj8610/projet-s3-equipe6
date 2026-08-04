@@ -5,11 +5,8 @@ enum class States
 {
     Idle,
     Swing,
-    MoveToX,
-    MoveBack,
     Stabilize,
-    Drop,
-
+    MoveBack
 };
 
 inline const char *stateToString(States state)
@@ -22,14 +19,11 @@ inline const char *stateToString(States state)
     case States::Swing:
         return "SWING";
 
-    case States::MoveToX:
-        return "MOVE_TO_X";
+    case States::MoveBack:
+        return "MOVE_BACK";
 
     case States::Stabilize:
         return "STABILIZE";
-
-    case States::Drop:
-        return "DROP";
 
     default:
         return "UNKNOWN";

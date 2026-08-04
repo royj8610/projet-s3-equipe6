@@ -104,22 +104,33 @@ void loop()
 
         switch (command)
         {
-        case CommJSON::Command::Start:
+        case CommJSON::Command::Swing:
+        {
             robotState = States::Swing;
             break;
-
+        }
         case CommJSON::Command::Stop:
+        {
             robotState = States::Idle;
             break;
-
-        case CommJSON::Command::SetTarget:
+        }
+        case CommJSON::Command::Stabilize:
+        {
             targetPosition = communication.getTargetPosition();
             robotState = States::Stabilize;
             break;
-
+        }
+        case CommJSON::Command::MoveBack:
+        {
+            targetPosition = communication.getTargetPosition();
+            robotState = States::MoveBack;
+            break;
+        }
         case CommJSON::Command::None:
         case CommJSON::Command::Invalid:
+        {
             break;
+        }
         }
     }
 

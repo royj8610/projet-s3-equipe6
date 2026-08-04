@@ -143,19 +143,18 @@ bool CommJSON::parseMessage(const String &message)
     }
 
     // On trouve la bonne commande
-    if (strcmp(commandText, "START") == 0)
+    if (strcmp(commandText, "SWING") == 0)
     {
-        _command = Command::Start;
+        _command = Command::Swing;
         return true;
     }
-
-    if (strcmp(commandText, "STOP") == 0)
+    if (strcmp(commandText, "STOP") == 0 || strcmp(commandText, "IDLE") == 0)
     {
         _command = Command::Stop;
         return true;
     }
 
-    if (strcmp(commandText, "SET_TARGET") == 0)
+    if (strcmp(commandText, "STABILIZE") == 0)
     {
         if (!documentJson["x_target"].is<double>())
         {
@@ -165,8 +164,23 @@ bool CommJSON::parseMessage(const String &message)
         }
 
         _targetPosition = documentJson["x_target"].as<double>();
-        _command = Command::SetTarget;
+        _command = Command::Stabilize;
 
+        return true;
+        return true;
+    }
+
+    if (strcmp(commandText, "MOVE_BACK") == 0)
+    {
+        if (!documentJson["x_target"].is<double>())
+        {
+            _command = Command::Invalid;
+            sendError("Position cible absente ou invalide");
+            return false;
+        }
+
+        _targetPosition = documentJson["x_target"].as<double>();
+        _command = Command::MoveBack;
         return true;
     }
 

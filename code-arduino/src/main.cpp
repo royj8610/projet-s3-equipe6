@@ -249,10 +249,6 @@ void loop()
     robotState = States::Stabilize;
     targetPosition = TARGET;
   }
-  else if (robotState == States::MoveToX && targetPosition == TARGET && position * MOTOR_SIGN >= 0.7)
-  {
-    robotState = States::Stabilize;
-  }
   else if (robotState == States::Stabilize && checkTol(angle, targetAngle, TOL) && checkTol(angularSpeed, 0, TOL) && checkTol(position, targetPosition, 0.04))
   {
     magnet.detach();
@@ -274,15 +270,6 @@ void loop()
   float goal[4] = {position - targetPosition, speed, sin(angle - targetAngle), angularSpeed};
   switch (robotState)
   {
-  case States::MoveToX:
-  {
-    float u = LQR_MOVE[0] * goal[0] + LQR_MOVE[1] * goal[1] + LQR_MOVE[2] * goal[2] + LQR_MOVE[3] * goal[3];
-
-    motor.setForce(-u);
-
-    break;
-  }
-
   case States::MoveBack:
   {
     float u = LQR_BACK[0] * goal[0] + LQR_BACK[1] * goal[1] + LQR_BACK[2] * goal[2] + LQR_BACK[3] * goal[3];
