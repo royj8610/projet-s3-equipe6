@@ -1,22 +1,38 @@
-#include <Arduino.h>
-#include "board.h"
 #include "magnet.h"
 
 #define RANGE_DEG 90
-#define DELAY_MILLIS 300
+#define DELAY_MILLIS 200
 
-Servo servo;
-
-void magnetInit() {
+void Magnet::init()
+{
     servo.attach(SERVO_PIN);
-
     servo.write(SERVO_OFFSET);
+    extended = false;
 }
 
-void magnetDetach() {
-    servo.write(RANGE_DEG + SERVO_OFFSET);
+void Magnet::detach()
+{
+    lastDrop = millis();
+}
 
-    delay(DELAY_MILLIS);
+void Magnet::update()
+{
+    if (millis() - lastDrop < DELAY_MILLIS)
+    {
+        if (!extended)
+        {
+            servo.write(SERVO_OFFSET + RANGE_DEG);
+            extended = true;
+        }
+    }
+    else if (extended)
+    {
+        servo.write(SERVO_OFFSET);
+        extended = false;
+    }
+}
 
-    servo.write(SERVO_OFFSET);
+bool Magnet::isExtended()
+{
+    return extended;
 }

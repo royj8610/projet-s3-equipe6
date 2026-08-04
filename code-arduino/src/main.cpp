@@ -53,6 +53,7 @@ const float TARGET = 1.2 * MOTOR_SIGN;
 PendulumEncoder encoPendule(AS5047P_CS_PIN); // CS pin 9, SPI speed default from library header (can pass a custom speed)
 CommJSON communication(Serial);
 Motor motor = Motor();
+Magnet magnet = Magnet();
 
 //-----------------------------------------
 //                Variables
@@ -117,7 +118,7 @@ void setup()
   communication.init();
 
   // Init servo
-  magnetInit();
+  magnet.init();
 
   // Init motor
   Serial.println("Wait for calibration...");
@@ -207,8 +208,9 @@ void loop()
   // Get power
   motor.fetchVoltageCurrent();
   double power = motor.getElectricalPower();
-  // Serial.println(power);
-  // motor.sniff();
+
+  // Update magnet state
+  magnet.update();
 
   lastMeasureTime = currentTime;
   lastAngle = angle;
@@ -253,9 +255,14 @@ void loop()
   }
   else if (robotState == States::Stabilize && checkTol(angle, targetAngle, TOL) && checkTol(angularSpeed, 0, TOL) && checkTol(position, targetPosition, 0.04))
   {
-    magnetDetach();
+    magnet.detach();
     robotState = States::MoveBack;
-    targetPosition = 0;
+    targetPosition = TARGET;
+  }
+  else if (robotState == States::MoveBack && checkTol(position, TARGET, 0.04) && !magnet.isExtended())
+  {
+    robotState = States::MoveBack;
+    targetPosition = 0.0;
   }
   else if (robotState == States::MoveBack && checkTol(position, 0.0, 0.04) && checkTol(speed, 0.0, 0.04))
   {
@@ -309,24 +316,24 @@ void loop()
   }
 
   // Envoie de l'état robot au raspberry
-  // if (millis() - timerEnvoi >= DELAI_ENVOI)
-  // {
-  //   DEBUG_PRINT("Send state : ");
-  //   timerEnvoi = millis();
+  if (millis() - timerEnvoi >= DELAI_ENVOI)
+  {
+    DEBUG_PRINT("Send state : ");
+    timerEnvoi = millis();
 
-  //   CommJSON::RobotState state;
+    CommJSON::RobotState state;
 
-  //   state.position = position;
-  //   state.speed = speed;
-  //   state.angle = angle;
-  //   state.angularSpeed = angularSpeed;
-  //   state.accelerationX = accelerationX;
-  //   state.slipDetected = false;
-  //   state.state = robotState;
-  //   state.targetPosition = targetPosition;
-  //   state.power = 0;
+    state.position = position;
+    state.speed = speed;
+    state.angle = angle;
+    state.angularSpeed = angularSpeed;
+    state.accelerationX = accelerationX;
+    state.slipDetected = false;
+    state.state = robotState;
+    state.targetPosition = targetPosition;
+    state.power = 0;
 
-  //   bool msgSent = communication.sendState(state);
-  // }
+    bool msgSent = communication.sendState(state);
+  }
 
 } // Loop end

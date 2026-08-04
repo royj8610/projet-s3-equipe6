@@ -7,7 +7,7 @@
 #define SPI_MOSI 23
 
 #define SERVO_PIN 33
-#define SERVO_OFFSET 0
+#define SERVO_OFFSET 15
 
 #define AS5047P_CS_PIN 25 // Encoder chip select pin
 #define MCP2515_CS_PIN 32 // CAN module chip select pin
