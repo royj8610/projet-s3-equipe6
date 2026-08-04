@@ -324,6 +324,7 @@ void loop()
   //   state.slipDetected = false;
   //   state.state = robotState;
   //   state.targetPosition = targetPosition;
+  //   state.power = 0;
 
   //   bool msgSent = communication.sendState(state);
   // }
