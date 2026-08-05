@@ -43,8 +43,8 @@ const float LQR_STAB[4] = {44.72135955, 24.30961974, -53.24889054, -5.29367469};
 const float L_ROD = 0.25;
 const float CLEARANCE = 0.015;
 
-const float TOL = 0.08;
-const float POS_TOL = 0.03;
+const float TOL = 0.1;
+const float POS_TOL = 0.04;
 
 const float TARGET = 1.2 * MOTOR_SIGN;
 
@@ -284,7 +284,7 @@ void loop()
   {
     magnet.retract();
     robotState = States::MoveBack;
-    targetPosition = 0.0;
+    targetPosition = -0.02;
   }
   else if (robotState == States::MoveBack && checkTol(position, 0.0, POS_TOL) && checkTol(speed, 0.0, POS_TOL))
   {
