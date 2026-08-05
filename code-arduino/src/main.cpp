@@ -46,6 +46,8 @@ const float CLEARANCE = 0.015;
 const float TOL = 0.1;
 const float POS_TOL = 0.04;
 
+const float OBSTACLE_OFFSET = 0.06;
+
 const float TARGET = 1.2 * MOTOR_SIGN;
 
 //-----------------------------------------
@@ -184,7 +186,7 @@ void loop()
       {
         motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
         robotState = States::Stabilize;
-        targetPosition = 0.5;
+        targetPosition = 0.5 + OBSTACLE_OFFSET;
       }
       // targetPosition = communication.getTargetPosition();
       // robotState = States::Stabilize;
@@ -257,7 +259,7 @@ void loop()
   lastMeasureTime = currentTime;
   lastAngle = angle;
 
-  if (robotState == States::Stabilize && targetPosition == 0.5 * MOTOR_SIGN && position * MOTOR_SIGN > 0.35)
+  if (robotState == States::Stabilize && targetPosition == (0.5 + OBSTACLE_OFFSET) * MOTOR_SIGN && position * MOTOR_SIGN > (0.35 + OBSTACLE_OFFSET))
   {
     robotState = States::Swing;
   }
@@ -268,7 +270,7 @@ void loop()
     targetPosition = TARGET;
   }
   // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
-  else if (robotState == States::Swing && position * MOTOR_SIGN > 0.62)
+  else if (robotState == States::Swing && position * MOTOR_SIGN > (0.62 + OBSTACLE_OFFSET))
   {
     robotState = States::Stabilize;
     targetPosition = TARGET;
