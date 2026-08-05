@@ -32,8 +32,8 @@ public:
     static constexpr double TARGET_X_PICKUP = 0;
     static constexpr double PI = 3.14159265;
     static constexpr double POSITION_TOLERANCE = 0.05;
-    static constexpr double ANGLE_TOLERANCE = 0.06;
-    static constexpr double SPEED_TOLERANCE = 0.06;
+    static constexpr double ANGLE_TOLERANCE = 0.08;
+    static constexpr double SPEED_TOLERANCE = 0.08;
 
 
     // Méthodes
@@ -49,6 +49,7 @@ private :
     QString nextState_ = "";
     double nextTargetX_ = 0;
     bool shouldStart_ = false;
+    bool shouldCount_ = false;
     uint8_t treeNum_ = 0;
     QString lastState_ = "";
 

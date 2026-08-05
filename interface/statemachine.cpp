@@ -20,15 +20,16 @@ void StateMachine::update(QString state, double position, double speed, double a
         nextState_ = "STABILIZE";
         nextTargetX_ = 0.5;
         shouldStart_ = false;
+        shouldCount_ = true;
     }
     else if(state == "STABILIZE"
-            && position > 0.4
+            && position > 0.3
             && nextTargetX_ == 0.5)
     { 
             nextState_ = "SWING";
     }
     else if(state == "SWING"
-            && (position > 0.7 ))
+            && (position > 0.6 ))
     {
 
             nextState_ = "STABILIZE";
@@ -42,20 +43,22 @@ void StateMachine::update(QString state, double position, double speed, double a
     {
 
         nextState_ = "DROP";
-        qDebug() << "Changed to drop";
     }
     else if(state == "DROP"
             && hasExtended)
     {
-        qDebug() << "Changed to moveback";
         nextState_ = "MOVE_BACK";
         nextTargetX_ = 0;
     }
     else if (state == "MOVE_BACK"
-             && (qAbs(position - nextTargetX_) <= POSITION_TOLERANCE)
+             && (qAbs(position) <= POSITION_TOLERANCE)
              && (qAbs(speed - 0) <= SPEED_TOLERANCE))
     {
-        treeNum_ += 1;
+        if(shouldCount_)
+        {
+            treeNum_ += 1;
+            shouldCount_ = false;
+        }
 
         nextState_ = "IDLE";
         shouldStart_ = false;
@@ -97,6 +100,7 @@ void StateMachine::sendButtonCommand(StateMachine::ButtonType buttonType)
     }
     case StateMachine::ButtonType::RESET:{
         shouldStart_ = false;
+        treeNum_ = 0;
         break;
     }
     }

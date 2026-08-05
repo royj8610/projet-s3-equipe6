@@ -36,21 +36,21 @@
       <item>
        <widget class="QLabel" name="totalTimeLabel">
         <property name="text">
-         <string>TextLabel</string>
+         <string>Time</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QLabel" name="maxPowerLabel">
         <property name="text">
-         <string>TextLabel</string>
+         <string>Power</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QLabel" name="numTreeLabel">
         <property name="text">
-         <string>TextLabel</string>
+         <string>NbTree</string>
         </property>
        </widget>
       </item>
@@ -114,14 +114,14 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="text">
-           <string>TextLabel</string>
+           <string>StateA</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QLabel" name="cycleTimeLabelA">
           <property name="text">
-           <string>TextLabel</string>
+           <string>CycleTimeA</string>
           </property>
          </widget>
         </item>
@@ -170,14 +170,14 @@
         <item alignment="Qt::AlignRight">
          <widget class="QLabel" name="stateLabelB">
           <property name="text">
-           <string>TextLabel</string>
+           <string>StateB</string>
           </property>
          </widget>
         </item>
         <item alignment="Qt::AlignRight">
          <widget class="QLabel" name="cycleTimeLabelB">
           <property name="text">
-           <string>TextLabel</string>
+           <string>CycleTimeB</string>
           </property>
          </widget>
         </item>
@@ -199,7 +199,7 @@
      </layout>
     </item>
     <item row="6" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="6,1">
       <item>
        <widget class="QChartView" name="graphA"/>
       </item>

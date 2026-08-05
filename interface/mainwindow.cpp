@@ -122,28 +122,35 @@ void MainWindow::receiveFromSerial(QString msg){
     }
 
     // Parse le message
-    time = jsonObj.value("time").toDouble() / 1000.0; // le temps est est en ms
-    position = jsonObj.value("position").toDouble();
-    speed = jsonObj.value("speed").toDouble();
-    angle = jsonObj.value("angle").toDouble();
+    time         = jsonObj.value("time").toDouble() / 1000.0; // le temps est est en ms
+    position     = jsonObj.value("position").toDouble();
+    speed        = jsonObj.value("speed").toDouble();
+    angle        = jsonObj.value("angle").toDouble();
     angularSpeed = jsonObj.value("angular_speed").toDouble();
-    state = jsonObj.value("state").toString();
-    power = jsonObj.value("power").toDouble();
-    hasExtended = jsonObj.value("extended").toBool();
+    state        = jsonObj.value("state").toString();
+    power        = jsonObj.value("power").toDouble();
+    hasExtended  = jsonObj.value("extended").toBool();
+    numTree      = jsonObj.value("nb_tree").toInt();
+
+    // On veut que le time comment a zéro sur le premier bouton start
+    if(firstStart)
+    {
+        startTime_ = time;
+    }
 
     qDebug()
-            << "New State" << state
-            << "Position" << position
-            << "Vitesse"    << speed
-            << "Angle"    << angle
+            << "State"     << state
+            << "Position"  << position
+            << "Vitesse"   << speed
+            << "Angle"     << angle
             << "AngVel"    << angularSpeed
-            << "Extended" << hasExtended;
+            << "Extended"  << hasExtended;
 
     // Update les labels
-    ui->totalTimeLabel->setText("Time: " + QString::number(time,'f', 2) + " sec");
+    ui->totalTimeLabel->setText("Time: " + QString::number(time - startTime_,'f', 2) + " sec");
     ui->stateLabelA->setText("State: " + state);
     ui->maxPowerLabel->setText("Maximum power: " + QString::number(power,'f', 2));
-    ui->numTreeLabel->setText("Tree dropped: " + stateMachine_.getTreeNum());
+    ui->numTreeLabel->setText("Tree dropped: " + QString::number(numTree, 'f', 0));
 
 
     // Update les données du graph
@@ -151,6 +158,7 @@ void MainWindow::receiveFromSerial(QString msg){
     seriesAangle_.append(time, angle*180/StateMachine::PI);
     axisX_->setRange(time - 10, time);
 
+    /*
     // Mise a jour state machine
     stateMachine_.update(state, position, speed, angle, angularSpeed, hasExtended);
     QString nextState = stateMachine_.getState();
@@ -166,12 +174,13 @@ void MainWindow::receiveFromSerial(QString msg){
     QJsonDocument doc(jsonObject); // Formattage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
     sendMessage(strJson);
+    */
 }
 
 void MainWindow::onMessageReceived(QString msg){
     // Fonction appelee lors de reception de message
     // Decommenter la ligne suivante pour deverminage
-    // qDebug().noquote() << "Message du Arduino: " << msg;
+    qDebug().noquote() << "Message du Arduino: " << msg;
 }
 
 void MainWindow::onPeriodicUpdate(){
@@ -211,9 +220,11 @@ void MainWindow::connectComboBox(){
 void MainWindow::resetButtonClicked() {
     // modifié
     //qDebug().noquote() <<"Bouton reset";
+    firstStart = true;
+
     QJsonObject jsonObject
     {
-        {"cmd", "RESET"}
+        {"cmd", "STOP"}
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
@@ -224,9 +235,11 @@ void MainWindow::resetButtonClicked() {
 void MainWindow::startButtonClicked() {
     // modifié
     //qDebug().noquote() <<"Bouton start";
+    firstStart = false;
     QJsonObject jsonObject
     {
-        {"cmd", "START"}
+        {"cmd", "STABILIZE"},
+        {"x_target", 0}
     };
     QJsonDocument doc(jsonObject); // Formatage en document JSON
     QString strJson(doc.toJson(QJsonDocument::Compact));// Casting en type QString
@@ -236,7 +249,7 @@ void MainWindow::startButtonClicked() {
 
 void MainWindow::stopButtonClicked() {
     // modifié
-    //qDebug().noquote() <<"Bouton stop";
+    qDebug().noquote() <<"Bouton stop";
     QJsonObject jsonObject
     {
         {"cmd", "STOP"}
@@ -277,7 +290,7 @@ void MainWindow::sendMessage(QString msg){
         return;
     }
     serialCom_->sendMessage(msg);
-    // qDebug().noquote() <<"Message du RPI: "  <<msg;
+    qDebug().noquote() <<"Message du RPI: "  <<msg;
 }
 
 void MainWindow::setUpdateRate(int rateMs){

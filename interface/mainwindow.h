@@ -82,6 +82,7 @@ private:
     QLineSeries seriesBangle_;
 
     QString state = "Unknown";
+    uint8_t numTree = 0;
     double position = 0.0;
     double angle = 0.0;
     double time = 0.0;
@@ -90,6 +91,9 @@ private:
     double angularSpeed = 0.0;
     double acceleraionX = 0.0;
     double targetPosition = 0.0;
+
+    double startTime_ = 0.0;
+    bool firstStart = true;
 
     bool slipDetected = false;
     bool arduinoReady = false;
