@@ -36,7 +36,7 @@ private:
     float wheel_diameter = 0.05;
     float kg = -60.0 / 32.0;
     float position_offset = 0.0;
-    float max_torque = 0.15;
+    float max_torque = 0.17;
 
     float pos_factor;
 

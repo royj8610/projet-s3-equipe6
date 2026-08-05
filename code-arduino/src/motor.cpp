@@ -178,7 +178,7 @@ void Motor::setTorque(float torque)
 {
     float limited_torque = torque;
     const float torque_threshold = 0.01;
-    const float friction_torque = 0.03;
+    const float friction_torque = 0.04;
 
     if (torque < (this->max_torque * -1.0))
     {

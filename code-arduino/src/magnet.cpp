@@ -1,7 +1,7 @@
 #include "magnet.h"
 
 #define RANGE_DEG 90
-#define DELAY_MILLIS 200
+#define DELAY_MILLIS 250
 
 void Magnet::init()
 {

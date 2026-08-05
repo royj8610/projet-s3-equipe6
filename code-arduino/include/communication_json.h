@@ -29,6 +29,7 @@ public:
         double targetPosition = 0.0;
         double power = 0.0;
         bool magnetExtended = false;
+        int nbTree = 0;
     };
 
     // Constructeur
@@ -47,6 +48,7 @@ public:
     double getTargetPosition() const;
 
     bool sendState(const RobotState &state);
+    void sendError(const char *message);
 
 private:
     Stream &_serial;
@@ -55,7 +57,6 @@ private:
     double _targetPosition = 0.0;
 
     bool parseMessage(const String &message);
-    void sendError(const char *message);
 };
 
 #endif // COMM_JSON_H

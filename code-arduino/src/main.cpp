@@ -33,17 +33,18 @@
 //-----------------------------------------
 //               Constantes
 //-----------------------------------------
-const unsigned long DELAI_ENVOI = 20; // 100 ms = 10 Hz
-// k_stab: [[ 44.72135955  24.48511986 -54.18831837  -5.26798942]]
-// k_goto: [[31.6227766   8.40881948  1.06721826  0.26126971]]
+const unsigned long DELAI_ENVOI = 100; // 100 ms = 10 Hz
+// k_stab : [[ 44.72135955  24.30961974 -53.24889054  -5.29367469]]
+// k_goto : [[31.6227766  12.38004435  0.8421009   0.08961256]]
 const float LQR_MOVE[4] = {31.6227766, 8.40881948, 1.06721826, 0.26126971};
-const float LQR_BACK[4] = {31.6227766, 7.98244291, 0.77851821, 0.1250544};
-const float LQR_STAB[4] = {44.72135955, 24.48511986, -54.18831837, -5.26798942};
+const float LQR_BACK[4] = {31.6227766, 12.38004435, 0.8421009, 0.08961256};
+const float LQR_STAB[4] = {44.72135955, 24.30961974, -53.24889054, -5.29367469};
 
 const float L_ROD = 0.25;
 const float CLEARANCE = 0.015;
 
-const float TOL = 0.05;
+const float TOL = 0.08;
+const float POS_TOL = 0.03;
 
 const float TARGET = 1.2 * MOTOR_SIGN;
 
@@ -69,6 +70,10 @@ float targetAngle = 0;
 
 double targetPosition = 0.0;
 States robotState = States::Idle;
+
+bool isErrorState = false;
+
+int nbTree = 0;
 
 //-----------------------------------------
 //                Fonctions
@@ -140,6 +145,8 @@ void setup()
 
   targetAngle = encoPendule.readAngleRad();
 
+  nbTree = 0;
+
   DEBUG_PRINTLN("Ready to start");
 }
 
@@ -157,7 +164,7 @@ void loop()
     {
     case CommJSON::Command::Swing:
     {
-      robotState = States::Swing;
+      // robotState = States::Swing;
       break;
     }
     case CommJSON::Command::Stop:
@@ -176,30 +183,32 @@ void loop()
       if (robotState == States::Idle)
       {
         motor.setAxisState(AxisState::CLOSED_LOOP_CONTROL);
+        robotState = States::Stabilize;
+        targetPosition = 0.5;
       }
-      targetPosition = communication.getTargetPosition();
-      robotState = States::Stabilize;
+      // targetPosition = communication.getTargetPosition();
+      // robotState = States::Stabilize;
       break;
     }
     case CommJSON::Command::MoveBack:
     {
-      if (robotState != States::MoveBack)
-      {
-        magnet.retract();
-      }
+      // if (robotState != States::MoveBack)
+      // {
+      //   magnet.retract();
+      // }
 
-      targetPosition = communication.getTargetPosition();
-      robotState = States::MoveBack;
+      // targetPosition = communication.getTargetPosition();
+      // robotState = States::MoveBack;
       break;
     }
     case CommJSON::Command::Drop:
     {
-      if (robotState != States::Drop)
-      {
-        magnet.extend();
-      }
+      // if (robotState != States::Drop)
+      // {
+      //   magnet.extend();
+      // }
 
-      robotState = States::Drop;
+      // robotState = States::Drop;
       break;
     }
     case CommJSON::Command::None:
@@ -216,11 +225,23 @@ void loop()
 
   if (motor.fetchEncoderEstimates())
   {
+    if (isErrorState)
+    {
+      isErrorState = false;
+
+      communication.sendError("Regained connection");
+    }
+    isErrorState = false;
     // Serial.println("Connection to motor OK");
   }
   else
   {
-    DEBUG_PRINTLN("Can't establish connection");
+    if (!isErrorState)
+    {
+      isErrorState = true;
+
+      communication.sendError("Lost connection with controller");
+    }
   }
 
   double position = motor.getPosition();
@@ -236,6 +257,41 @@ void loop()
   lastMeasureTime = currentTime;
   lastAngle = angle;
 
+  if (robotState == States::Stabilize && targetPosition == 0.5 * MOTOR_SIGN && position * MOTOR_SIGN > 0.35)
+  {
+    robotState = States::Swing;
+  }
+  // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
+  else if (robotState == States::Swing && (L_ROD - L_ROD * cos(angle - targetAngle) > CLEARANCE) && (angle < targetAngle) && (angularSpeed <= 0))
+  {
+    robotState = States::Stabilize;
+    targetPosition = TARGET;
+  }
+  // && angle > 1cm au dessus de obstacle L - L*np.cos(theta) > self.height_target and theta < 0 and dtheta <= 0
+  else if (robotState == States::Swing && position * MOTOR_SIGN > 0.62)
+  {
+    robotState = States::Stabilize;
+    targetPosition = TARGET;
+  }
+  else if (robotState == States::Stabilize && checkTol(angle, targetAngle, TOL) && checkTol(angularSpeed, 0, TOL) && checkTol(position, targetPosition, POS_TOL))
+  {
+    magnet.extend();
+    robotState = States::Drop;
+    targetPosition = TARGET;
+    nbTree++;
+  }
+  else if (robotState == States::Drop && magnet.isExtended())
+  {
+    magnet.retract();
+    robotState = States::MoveBack;
+    targetPosition = 0.0;
+  }
+  else if (robotState == States::MoveBack && checkTol(position, 0.0, POS_TOL) && checkTol(speed, 0.0, POS_TOL))
+  {
+    robotState = States::Idle;
+    motor.setAxisState(AxisState::IDLE);
+  }
+
   // Calcul de la commande moteur
   float goal[4] = {position - targetPosition, speed, sin(angle - targetAngle), angularSpeed};
   switch (robotState)
@@ -244,7 +300,14 @@ void loop()
   {
     float u = LQR_BACK[0] * goal[0] + LQR_BACK[1] * goal[1] + LQR_BACK[2] * goal[2] + LQR_BACK[3] * goal[3];
 
-    motor.setForce(-u);
+    if (isErrorState)
+    {
+      motor.setForce(0.0);
+    }
+    else
+    {
+      motor.setForce(-u);
+    }
 
     break;
   }
@@ -254,14 +317,28 @@ void loop()
   {
     float u = LQR_STAB[0] * goal[0] + LQR_STAB[1] * goal[1] + LQR_STAB[2] * goal[2] + LQR_STAB[3] * goal[3];
 
-    motor.setForce(-u);
+    if (isErrorState)
+    {
+      motor.setForce(0.0);
+    }
+    else
+    {
+      motor.setForce(-u);
+    }
 
     break;
   }
 
   case States::Swing:
   {
-    motor.setForce(100 * MOTOR_SIGN);
+    if (isErrorState)
+    {
+      motor.setForce(0.0);
+    }
+    else
+    {
+      motor.setForce(100 * MOTOR_SIGN);
+    }
 
     break;
   }
@@ -291,6 +368,7 @@ void loop()
     state.targetPosition = targetPosition;
     state.power = 0;
     state.magnetExtended = magnet.isExtended();
+    state.nbTree = nbTree;
 
     bool msgSent = communication.sendState(state);
   }
