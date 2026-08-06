@@ -275,7 +275,7 @@ void loop()
     robotState = States::Stabilize;
     targetPosition = TARGET;
   }
-  else if (robotState == States::Stabilize && checkTol(angle, targetAngle, TOL) && checkTol(angularSpeed, 0, TOL) && checkTol(position, targetPosition, POS_TOL))
+  else if (robotState == States::Stabilize && targetPosition == TARGET && checkTol(angle, targetAngle, TOL) && checkTol(angularSpeed, 0, TOL) && checkTol(position, targetPosition, POS_TOL))
   {
     magnet.extend();
     robotState = States::Drop;
@@ -285,10 +285,10 @@ void loop()
   else if (robotState == States::Drop && magnet.isExtended())
   {
     magnet.retract();
-    robotState = States::MoveBack;
-    targetPosition = -0.02;
+    robotState = States::Stabilize;
+    targetPosition = 0.0;
   }
-  else if (robotState == States::MoveBack && checkTol(position, 0.0, POS_TOL) && checkTol(speed, 0.0, POS_TOL))
+  else if (robotState == States::Stabilize && targetPosition == 0.0 && checkTol(angle, targetAngle, TOL) && checkTol(angularSpeed, 0, TOL) && checkTol(position, targetPosition, POS_TOL))
   {
     robotState = States::Idle;
     motor.setAxisState(AxisState::IDLE);

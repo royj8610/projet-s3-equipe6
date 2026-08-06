@@ -30,6 +30,7 @@ public:
         double power = 0.0;
         bool magnetExtended = false;
         int nbTree = 0;
+        float distanceTravelled = 0.0;
     };
 
     // Constructeur

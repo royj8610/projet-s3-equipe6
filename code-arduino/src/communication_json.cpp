@@ -107,6 +107,7 @@ bool CommJSON::sendState(const RobotState &state)
     documentJson["power"] = state.power;
     documentJson["extended"] = state.magnetExtended;
     documentJson["nb_tree"] = state.nbTree;
+    documentJson["distance_travelled"] = state.distanceTravelled;
 
     const size_t bytesWritten = serializeJson(documentJson, _serial);
 
