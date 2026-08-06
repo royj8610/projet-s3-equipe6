@@ -2,12 +2,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: main.py",
+            "name": "Python module: simulation.main",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/simulation/main.py",
+            "module": "simulation.main",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

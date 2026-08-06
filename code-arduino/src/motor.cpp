@@ -1,0 +1,266 @@
+#include "motor.h"
+
+Motor::Motor()
+    : spi(SPI),
+      mcp2515(MCP2515_CS_PIN)
+{
+    pos_factor = (3.141593 * this->wheel_diameter) / this->kg;
+}
+
+void Motor::sendCAN(uint32_t id, uint8_t *data, uint8_t len)
+{
+    struct can_frame frame;
+
+    frame.can_id = id;
+    frame.can_dlc = len;
+
+    memcpy(frame.data, data, len);
+
+    mcp2515.sendMessage(&frame);
+}
+
+bool Motor::fetchEncoderEstimates(uint32_t timeout_ms)
+{
+    // Send RTR request
+    struct can_frame request;
+
+    request.can_id = (NODE_ID << 5) | 0x09 | CAN_RTR_FLAG;
+    request.can_dlc = 0;
+
+    if (mcp2515.sendMessage(&request) != MCP2515::ERROR_OK)
+    {
+        return false;
+    }
+
+    // Wait for response
+    uint32_t start = millis();
+
+    struct can_frame response;
+
+    while (millis() - start < timeout_ms)
+    {
+        if (mcp2515.readMessage(&response) == MCP2515::ERROR_OK)
+        {
+            uint32_t expected_id = (NODE_ID << 5) | 0x09;
+
+            if (response.can_id == expected_id &&
+                response.can_dlc == 8)
+            {
+                memcpy(&position,
+                       response.data,
+                       sizeof(float));
+
+                memcpy(&velocity,
+                       response.data + 4,
+                       sizeof(float));
+
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool Motor::fetchVoltageCurrent(uint32_t timeout_ms)
+{
+    // Send RTR request
+    struct can_frame request;
+
+    request.can_id = (NODE_ID << 5) | 0x17 | CAN_RTR_FLAG;
+    request.can_dlc = 0;
+
+    if (mcp2515.sendMessage(&request) != MCP2515::ERROR_OK)
+    {
+        return false;
+    }
+
+    // Wait for response
+    uint32_t start = millis();
+
+    struct can_frame response;
+
+    while (millis() - start < timeout_ms)
+    {
+        if (mcp2515.readMessage(&response) == MCP2515::ERROR_OK)
+        {
+            uint32_t expected_id = (NODE_ID << 5) | 0x17;
+
+            if (response.can_id == expected_id &&
+                response.can_dlc == 8)
+            {
+                memcpy(&voltage,
+                       response.data,
+                       sizeof(float));
+
+                memcpy(&current,
+                       response.data + 4,
+                       sizeof(float));
+
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void Motor::setControllerMode(uint32_t control_mode, uint32_t input_mode)
+{
+    struct
+    {
+        uint32_t control_mode;
+        uint32_t input_mode;
+    } msg;
+
+    // Position control
+    msg.control_mode = control_mode;
+
+    // Passthrough
+    msg.input_mode = input_mode;
+
+    sendCAN(
+        (NODE_ID << 5) | 0x0B,
+        (uint8_t *)&msg,
+        8);
+}
+
+void Motor::setAxisState(uint32_t axis_state)
+{
+    sendCAN(
+        (NODE_ID << 5) | 0x07,
+        (uint8_t *)&axis_state,
+        4);
+}
+
+// Set position, in m
+void Motor::setPosition(float pos)
+{
+    struct
+    {
+        float pos;
+        int16_t vel_ff;
+        int16_t torque_ff;
+
+    } msg;
+
+    msg.pos = (pos / this->pos_factor) + this->position_offset;
+    msg.vel_ff = 0;
+    msg.torque_ff = 0;
+
+    sendCAN(
+        (NODE_ID << 5) | 0x0C,
+        (uint8_t *)&msg,
+        8);
+}
+
+// set velocity, in m/s
+void Motor::setVelocity(float vel)
+{
+    struct
+    {
+        float vel;
+        float input_torque_ff;
+
+    } msg;
+
+    msg.vel = vel / this->pos_factor;
+    msg.input_torque_ff = 0;
+
+    sendCAN(
+        (NODE_ID << 5) | 0x0D,
+        (uint8_t *)&msg,
+        8);
+}
+
+// Set motor torque, in N.m
+void Motor::setTorque(float torque)
+{
+    float limited_torque = torque;
+    const float torque_threshold = 0.01;
+    const float friction_torque = 0.04;
+
+    if (torque < (this->max_torque * -1.0))
+    {
+        limited_torque = this->max_torque * -1.0;
+    }
+    else if (torque > this->max_torque)
+    {
+        limited_torque = this->max_torque;
+    }
+    else if (torque < torque_threshold && torque > -torque_threshold)
+    {
+        limited_torque = 0.0;
+    }
+
+    if (limited_torque > 0.0)
+    {
+        limited_torque += friction_torque;
+    }
+    else if (limited_torque < 0.0)
+    {
+        limited_torque -= friction_torque;
+    }
+
+    sendCAN(
+        (NODE_ID << 5) | 0x0E,
+        (uint8_t *)&limited_torque,
+        8);
+}
+
+// Set cart force, in N
+void Motor::setForce(float force)
+{
+    float tr = force * this->wheel_diameter / 2;
+    float tm = tr / this->kg;
+
+    this->setTorque(tm);
+}
+
+// Sets motor offset to current position
+void Motor::setOffset()
+{
+    this->fetchEncoderEstimates();
+
+    this->position_offset = this->position;
+}
+
+float Motor::getPosition()
+{
+    return (this->position - this->position_offset) * this->pos_factor;
+}
+
+float Motor::getVelocity()
+{
+    return velocity * this->pos_factor;
+}
+
+float Motor::getElectricalPower()
+{
+    return current;
+}
+
+void Motor::init()
+{
+#if defined(BOARD_ESP32)
+    spi.begin(
+        SPI_SCK,
+        SPI_MISO,
+        SPI_MOSI,
+        MCP2515_CS_PIN);
+
+#elif defined(BOARD_MEGA)
+    pinMode(53, OUTPUT);
+    digitalWrite(53, HIGH);
+
+    spi.begin();
+#endif
+
+    mcp2515.reset();
+
+    mcp2515.setBitrate(
+        CAN_500KBPS,
+        MCP_8MHZ);
+
+    mcp2515.setNormalMode();
+}

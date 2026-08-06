@@ -24,7 +24,7 @@ class CartPoleParams:
 
     # Masses
     M_CHARIOT = 0.8
-    M_SAPIN = 0.220
+    M_SAPIN = 0.08 #0.220
     M_ROD = 0.05
 
     # Dimensions
